@@ -1,3 +1,6 @@
+# Ignore .env file
+.env
+
 # Logs
 logs
 *.log
@@ -7,6 +10,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Node modules and build artifacts
 node_modules
 dist
 dist-ssr
@@ -23,4 +27,5 @@ dist-ssr
 *.sln
 *.sw?
 
+# Miscellaneous
 .codegpt

@@ -13,6 +13,11 @@ import Select from "react-select";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { GoogleLogin } from "@react-oauth/google"; // Google OAuth library
 import Modal from "react-modal";
+import { saveTripDetails } from "../service/firebaseConfig";
+import { ClipLoader } from "react-spinners"; // Spinner library for loading indicator
+import { Link, animateScroll as scroll } from "react-scroll";
+import { useNavigate } from "react-router-dom";
+
 
 Modal.setAppElement("#root"); // Specify the app root for accessibility
 
@@ -38,6 +43,7 @@ const CreateTrip = () => {
   const [tripPlan, setTripPlan] = useState(null);
   const [rawResponse, setRawResponse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const tripCategoryOptions = [
     { label: "Adventure", value: "Adventure", icon: <FaMountain /> },
@@ -74,7 +80,9 @@ const CreateTrip = () => {
     });
   };
 
+  const navigate = useNavigate();
   const generateTripPlan = async () => {
+    setIsLoading(true); // Start loading
     const url = "http://localhost:3000/plans";
     const requestBody = {
       location: formData.destination,
@@ -101,9 +109,18 @@ const CreateTrip = () => {
       console.log("Response from backend:", data);
       setTripPlan(data);
       setRawResponse(data);
+
+      // Save trip plan to Firebase after successfully generating it
+      await saveTripDetails(data);  // Call saveTripDetails and pass the generated data
+
+      // Navigate to the "View Trip" page
+      navigate("/view-trip/:tripId");
+
     } catch (error) {
       console.error("Error generating trip plan:", error);
-    }
+    }finally {
+    setIsLoading(false); // End loading
+  }
   };
 
   const handleSubmit = (e) => {
@@ -148,7 +165,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="destination"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaMapMarkerAlt className="mr-2 text-blue-500" />
               Where do you want to go?
@@ -173,7 +190,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="travelDates"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className=" text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaCalendarAlt className="mr-2 text-blue-500" />
               When are you planning to travel?
@@ -194,7 +211,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="tripCategory"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className=" text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaUserFriends className="mr-2 text-blue-500" />
               What type of trip are you planning?
@@ -217,7 +234,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="tripDuration"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className=" text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaCalendarAlt className="mr-2 text-blue-500" />
               How many days are you planning your trip?
@@ -238,7 +255,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="budget"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className=" text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaDollarSign className="mr-2 text-blue-500" />
               What is your budget?
@@ -261,7 +278,7 @@ const CreateTrip = () => {
           <div>
             <label
               htmlFor="travelCompanion"
-              className="block text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              className=" text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
             >
               <FaUserFriends className="mr-2 text-blue-500" />
               Who do you plan on traveling with?
@@ -292,14 +309,25 @@ const CreateTrip = () => {
 
           {/* Submit Button */}
           <div>
-            <button
-              type="submit"
-              className="w-full px-6 py-3 bg-blue-600 text-white text-xl font-bold rounded-lg focus:outline-none hover:bg-blue-700"
-            >
-              Generate Trip Plan
-            </button>
+             {/* Submit Button */}
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+            disabled={isLoading} // Disable button while loading
+          >
+            {isLoading ? "Generating Trip Plan..." : "Generate Trip Plan"}
+          </button>
           </div>
         </form>
+
+        {/* Loading Spinner */}
+        {isLoading && (
+          <div className="mt-6">
+            <ClipLoader size={50} color="#1d4ed8" />
+            <p className="text-gray-500 mt-3">Please wait, generating your trip plan...</p>
+          </div>
+        )}
+
 
         {/* Modal for authentication prompt */}
         <Modal

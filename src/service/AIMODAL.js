@@ -58,7 +58,7 @@ app.use(express.json());
 app.post('/plans', (req, res) => {
   const { location, date, tripType, duration, budget } = req.body;
   async function wait (){
-  prompt = `Generate Travel Plan for Location: ${location}, of date ${date} for ${tripType} trip for ${duration} with a ${budget} budget. Give me a list of hotels and an itinerary in JSON format. Give me a Hotels options list with HotelName, Hotel address, Price, hotel image url, geo coordinates, rating, descriptions and suggest Itinerary with placeName, Place Details, Place image URL, Geo Coordinates, ticket Pricing, rating. Time travel each of the location for difference in ${date} days with proper planand with each day plan with best time to visit in JSON format.`
+  prompt = `Generate Travel Plan for Location: ${location}, of date ${date} for ${tripType} trip for ${duration} with a ${budget} budget. Give me a list of hotels and an itinerary in JSON format.`
   responced = await run(prompt)
   res.send(JSON.parse(responced));
   }
