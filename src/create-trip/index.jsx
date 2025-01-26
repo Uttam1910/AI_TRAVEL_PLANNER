@@ -17,7 +17,7 @@ import { saveTripDetails } from "../service/firebaseConfig";
 import { ClipLoader } from "react-spinners"; // Spinner library for loading indicator
 import { Link, animateScroll as scroll } from "react-scroll";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 
 Modal.setAppElement("#root"); // Specify the app root for accessibility
 
@@ -44,6 +44,7 @@ const CreateTrip = () => {
   const [rawResponse, setRawResponse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
+  const navigate = useNavigate();
 
   const tripCategoryOptions = [
     { label: "Adventure", value: "Adventure", icon: <FaMountain /> },
@@ -80,7 +81,6 @@ const CreateTrip = () => {
     });
   };
 
-  const navigate = useNavigate();
   const generateTripPlan = async () => {
     setIsLoading(true); // Start loading
     const url = "http://localhost:3000/plans";
@@ -106,21 +106,35 @@ const CreateTrip = () => {
       }
 
       const data = await response.json();
-      console.log("Response from backend:", data);
+      console.log("Backend response:", data); // Log backend response
       setTripPlan(data);
       setRawResponse(data);
 
-      // Save trip plan to Firebase after successfully generating it
-      await saveTripDetails(data);  // Call saveTripDetails and pass the generated data
-
-      // Navigate to the "View Trip" page
-      navigate("/view-trip/:tripId");
-
+      // const data = await response.json();
+      console.log("Backend response:", data);
+  
+      // Check if tripId exists in the response
+      const tripId = data?.id;
+      if (!tripId) {
+        console.error("Trip ID not found in backend response");
+        return;
+      }
+  
+      const savedTrip = await saveTripDetails(data);
+      console.log("Saved trip details:", savedTrip);
+  
+      const savedTripId = savedTrip?.id;
+      if (!savedTripId) {
+        console.error("Trip ID not found in saved trip details");
+        return;
+      }
+  
+      navigate(`/view_trip/${savedTripId}`);
     } catch (error) {
       console.error("Error generating trip plan:", error);
-    }finally {
-    setIsLoading(false); // End loading
-  }
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
   const handleSubmit = (e) => {
@@ -309,14 +323,14 @@ const CreateTrip = () => {
 
           {/* Submit Button */}
           <div>
-             {/* Submit Button */}
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            disabled={isLoading} // Disable button while loading
-          >
-            {isLoading ? "Generating Trip Plan..." : "Generate Trip Plan"}
-          </button>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              disabled={isLoading} // Disable button while loading
+            >
+              {isLoading ? "Generating Trip Plan..." : "Generate Trip Plan"}
+            </button>
           </div>
         </form>
 
@@ -324,10 +338,11 @@ const CreateTrip = () => {
         {isLoading && (
           <div className="mt-6">
             <ClipLoader size={50} color="#1d4ed8" />
-            <p className="text-gray-500 mt-3">Please wait, generating your trip plan...</p>
+            <p className="text-gray-500 mt-3">
+              Please wait, generating your trip plan...
+            </p>
           </div>
         )}
-
 
         {/* Modal for authentication prompt */}
         <Modal

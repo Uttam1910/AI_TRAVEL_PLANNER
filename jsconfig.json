@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
-    // ...
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
-    // ...
+      "@/*": ["src/*"]
+    },
+    "types": []  // This allows TypeScript to automatically discover types from node_modules
   }
 }
