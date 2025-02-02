@@ -1,51 +1,85 @@
-// Importing React library for creating components
-import React from "react"; 
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import { FaBars, FaTimes, FaGoogle } from "react-icons/fa";
 
-// Importing Link component from react-router-dom for navigation between pages
-import { Link } from "react-router-dom"; 
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
 
-// Importing GoogleOAuthProvider for providing Google OAuth context
-// Importing useGoogleLogin hook for handling Google authentication
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google"; 
-
-// Defining the Header component
-const Header = () => { 
-  // Initializing the Google login function using useGoogleLogin hook
   const handleGoogleLogin = useGoogleLogin({
-    // Callback function executed on successful login
     onSuccess: (response) => {
-      console.log("Google login successful", response); // Logging success response
-      // Handle authentication logic here (e.g., storing tokens)
+      console.log("Google login successful", response);
     },
-    // Callback function executed on login failure
     onError: (error) => {
-      console.error("Google login failed", error); // Logging error response
+      console.error("Google login failed", error);
     },
   });
 
   return (
-    // Providing Google OAuth context to enable authentication
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      {/* Header section with background color, shadow, and border */}
-      <header className="bg-white shadow-md border-b border-gray-300 w-full">
-        {/* Navigation bar with flexbox for layout, padding for spacing */}
-        <nav className="flex justify-between items-center px-2 py-2 w-full">
-          {/* Logo positioned on the left with margin from the left and top */}
+      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md border-b border-gray-300 w-full">
+        <nav className="flex justify-between items-center px-4 py-3 w-full">
+          {/* Logo (DO NOT MOVE) */}
           <Link to="/" className="flex items-center ml-2 mt-2">
-            {/* Logo image with responsive width, hover effect for scaling */}
             <img
-              src="/logoipsum-348.svg" // Path to the logo image
-              alt="Logo" // Alternative text for accessibility
-              className="w-40 h-auto transition-transform duration-300 ease-in-out transform hover:scale-105"
+              src="/logoipsum-348.svg"
+              alt="Logo"
+              className="w-40 h-auto transition-transform hover:scale-105"
             />
           </Link>
 
-          {/* Sign Up button positioned on the right with margin */}
+          {/* Desktop Navigation */}
+          <ul className="hidden md:flex gap-6 text-lg font-medium">
+            <li>
+              <Link to="/explore" className="hover:text-yellow-300 transition duration-300">
+                Explore
+              </Link>
+            </li>
+            <li>
+              <Link to="/trips" className="hover:text-yellow-300 transition duration-300">
+                My Trips
+              </Link>
+            </li>
+            <li>
+              <Link to="/about" className="hover:text-yellow-300 transition duration-300">
+                About
+              </Link>
+            </li>
+          </ul>
+
+          {/* Mobile Menu Icon */}
+          <div className="md:hidden cursor-pointer" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </div>
+
+          {/* Mobile Dropdown Menu */}
+          {menuOpen && (
+            <ul className="absolute top-16 left-0 w-full bg-white text-gray-900 shadow-md p-4 flex flex-col gap-4 md:hidden">
+              <li>
+                <Link to="/explore" onClick={() => setMenuOpen(false)} className="block p-2">
+                  Explore
+                </Link>
+              </li>
+              <li>
+                <Link to="/trips" onClick={() => setMenuOpen(false)} className="block p-2">
+                  My Trips
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" onClick={() => setMenuOpen(false)} className="block p-2">
+                  About
+                </Link>
+              </li>
+            </ul>
+          )}
+
+          {/* Sign Up Button (DO NOT MOVE) */}
           <button
-            onClick={handleGoogleLogin} // Calls Google login function on click
+            onClick={handleGoogleLogin}
             className="bg-black text-white font-semibold py-2 px-6 rounded-lg 
-                      hover:bg-gray-800 transition-all duration-300 ease-in-out shadow-md mr-2 mt-2"
+                      hover:bg-gray-800 transition-all duration-300 shadow-md mr-2 mt-2 flex items-center gap-2"
           >
+            <FaGoogle />
             Sign Up
           </button>
         </nav>
@@ -54,5 +88,4 @@ const Header = () => {
   );
 };
 
-// Exporting Header component for use in other parts of the application
 export default Header;
