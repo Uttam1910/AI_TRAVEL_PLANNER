@@ -1,56 +1,62 @@
-// Importing React library to create a functional component
-import React from "react"; 
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-// Importing useNavigate hook from react-router-dom for programmatic navigation
-import { useNavigate } from "react-router-dom"; 
+// Hero Component
+const Hero = () => {
+  const navigate = useNavigate();
 
-// Defining the Hero component
-const Hero = () => { 
-  // Initializing the navigate function to enable navigation between pages
-  const navigate = useNavigate(); 
-
-  // Function to handle the "Get Started" button click
-  const handleGetStartedClick = () => {
-    navigate("/create-trip");  // Redirects the user to the "Create Trip" page
-  };
+  // Navigation handlers
+  const handleGetStartedClick = () => navigate("/create-trip");
+  const handleExploreClick = () => navigate("/explore");
 
   return (
-    // Hero section with background color, padding for spacing
-    <section className="bg-white py-16 px-6">
-      {/* Centered container with a max width constraint */}
-      <div className="max-w-4xl mx-auto text-center">
-        {/* Heading with large text size, bold font, and margin for spacing */}
+    <section className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-20 px-6 min-h-screen flex items-center">
+      <div className="max-w-5xl mx-auto text-center">
+        {/* Heading */}
         <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-          {/* Using span elements with different colors for visual emphasis */}
-          <span className="text-blue-600">Discover</span>{" "} 
-          <span className="text-purple-600">New Destinations</span> <br />
-          <span className="text-pink-500">With Ease 🌍</span>
+          Plan Your <span className="text-yellow-400">Dream Trip</span> Effortlessly ✈️
         </h1>
 
-        {/* Description paragraph with medium text size and line spacing */}
+        {/* Subtitle */}
         <p className="text-lg md:text-xl leading-relaxed mb-8">
-          Your ultimate guide to planning the perfect trip.{" "}
-          {/* Span elements used for color styling */}
-          <span className="text-blue-500">Get personalized recommendations,</span>{" "}
-          <span className="text-purple-500">interactive tools,</span> and{" "}
-          <span className="text-pink-500">real-time travel insights</span> to make your journey unforgettable.
+          Get AI-powered recommendations, real-time insights, and seamless planning tools to craft the perfect journey.  
+          <span className="block mt-2 text-yellow-300">Adventure awaits—start your journey today!</span>
         </p>
 
-        {/* Button container aligned to the center with spacing */}
-        <div className="flex justify-center gap-4">
-          {/* "Get Started" button with styling and click event handler */}
+        {/* Buttons */}
+        <div className="flex justify-center gap-6 mt-6">
           <button
-            onClick={handleGetStartedClick} // Calls function to navigate on click
-            className="bg-blue-600 text-white font-medium py-3 px-8 rounded-full shadow-lg 
-                      hover:bg-blue-500 transition-all duration-300"
+            onClick={handleGetStartedClick}
+            className="bg-yellow-400 text-gray-900 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-yellow-300 transition-all duration-300"
           >
-            Get Started
+            Get Started 🚀
           </button>
+          <button
+            onClick={handleExploreClick}
+            className="bg-white text-blue-600 font-medium py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-all duration-300"
+          >
+            Explore More 🌍
+          </button>
+        </div>
+
+        {/* Additional Features Section */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold text-yellow-300">🔍 Smart Recommendations</h3>
+            <p className="text-sm mt-2">Personalized trip plans tailored to your preferences.</p>
+          </div>
+          <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold text-yellow-300">📍 Interactive Maps</h3>
+            <p className="text-sm mt-2">Explore new places with detailed travel insights.</p>
+          </div>
+          <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold text-yellow-300">📅 Seamless Booking</h3>
+            <p className="text-sm mt-2">Plan & book accommodations, flights, and activities.</p>
+          </div>
         </div>
       </div>
     </section>
   );
 };
 
-// Exporting Hero component for use in other parts of the application
 export default Hero;
