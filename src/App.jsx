@@ -17,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Hero />} /> {/* Landing Page */}
           <Route path="/create-trip" element={<CreateTrip />} /> {/* Create a Trip */}
-          <Route path="/view-trip/:tripId" element={<ViewTrip />} /> {/* View Trip Details */}
+          <Route path="/view_trip/:tripId" element={<ViewTrip />} /> {/* View Trip Details */}
         </Routes>
       </GoogleOAuthProvider>
     </div>

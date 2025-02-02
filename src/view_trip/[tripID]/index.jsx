@@ -1,137 +1,233 @@
-// src/view_trip/[tripID]/index.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Card from "../../components/ui/Card";
-import CardContent from "../../components/ui/CardContent";
-import Button from "../../components/ui/button";
-import Modal from "../../components/ui/Modal";
-import Input from "../../components/ui/Input";
+import { getTripDetails } from "../../service/firebaseConfig";
+import { ClipLoader } from "react-spinners";
+import {
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaUserFriends,
+  FaDollarSign,
+  FaMountain,
+  FaUmbrellaBeach,
+  FaLandmark,
+  FaHeart,
+} from "react-icons/fa";
 
-const ViewTripPage = () => {
+const ViewTrip = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTrip, setEditedTrip] = useState({});
-  const [deleteModal, setDeleteModal] = useState(false);
+  const [tripDetails, setTripDetails] = useState({
+    tripDetails: {},
+    hotelOptions: [],
+    itinerary: {},
+  }); // Initialize with default values
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios
-      .get(`/api/trips/${tripId}`)
-      .then((response) => setTrip(response.data))
-      .catch((error) => console.error("Error fetching trip:", error));
+    const fetchTripDetails = async () => {
+      try {
+        const details = await getTripDetails(tripId);
+        if (!details) {
+          throw new Error("Trip not found");
+        }
+        setTripDetails(details);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTripDetails();
   }, [tripId]);
 
-  const handleEdit = () => {
-    setEditedTrip(trip);
-    setIsEditing(true);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ClipLoader size={50} color="#1d4ed8" />
+        <p className="text-gray-500 ml-3">Loading trip details...</p>
+      </div>
+    );
+  }
 
-  const handleSave = () => {
-    axios
-      .put(`/api/trips/${tripId}`, editedTrip)
-      .then((response) => {
-        setTrip(response.data);
-        setIsEditing(false);
-      })
-      .catch((error) => console.error("Error saving trip:", error));
-  };
-
-  const handleDelete = () => {
-    axios
-      .delete(`/api/trips/${tripId}`)
-      .then(() => {
-        setDeleteModal(false);
-        navigate("/trips");
-      })
-      .catch((error) => console.error("Error deleting trip:", error));
-  };
-
-  const toggleCompleted = () => {
-    const updatedTrip = { ...trip, status: trip.status === "Completed" ? "Planned" : "Completed" };
-    axios
-      .put(`/api/trips/${tripId}`, updatedTrip)
-      .then((response) => setTrip(response.data))
-      .catch((error) => console.error("Error updating status:", error));
-  };
-
-  if (!trip) return <p>Loading...</p>;
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500 text-xl">{error}</p>
+        <button
+          onClick={() => navigate("/")}
+          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <Card>
-        <CardContent>
-          <h1 className="text-2xl font-bold mb-2">Trip Details</h1>
-          <p><strong>Destination:</strong> {trip.destination}</p>
-          <p><strong>Start Date:</strong> {new Date(trip.startDate).toLocaleDateString()}</p>
-          <p><strong>End Date:</strong> {new Date(trip.endDate).toLocaleDateString()}</p>
-          <p><strong>Budget:</strong> ${trip.budget}</p>
-          <p><strong>Description:</strong> {trip.description}</p>
-          <p><strong>Status:</strong> {trip.status}</p>
-        </CardContent>
-      </Card>
+    <section className="bg-white py-16 px-6">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-4xl font-extrabold text-blue-600 mb-6">
+          Your Trip Details
+        </h2>
 
-      <div className="flex gap-4">
-        <Button onClick={handleEdit}>Edit</Button>
-        <Button variant="outlined" color="error" onClick={() => setDeleteModal(true)}>Delete</Button>
-        <Button onClick={toggleCompleted}>
-          {trip.status === "Completed" ? "Mark as Planned" : "Mark as Completed"}
-        </Button>
+        <div className="space-y-6">
+          {/* Destination */}
+          <div className="flex items-center">
+            <FaMapMarkerAlt className="text-blue-500 mr-2 text-xl" />
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Destination:</span>{" "}
+              {tripDetails.tripDetails.location || "N/A"}
+            </p>
+          </div>
+
+          {/* Travel Dates */}
+          <div className="flex items-center">
+            <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Travel Dates:</span>{" "}
+              {tripDetails.tripDetails.startDate || "N/A"}
+            </p>
+          </div>
+
+          {/* Trip Category */}
+          <div className="flex items-center">
+            {tripDetails.tripDetails.tripType === "Adventure" && (
+              <FaMountain className="text-blue-500 mr-2 text-xl" />
+            )}
+            {tripDetails.tripDetails.tripType === "Beach" && (
+              <FaUmbrellaBeach className="text-blue-500 mr-2 text-xl" />
+            )}
+            {tripDetails.tripDetails.tripType === "Cultural" && (
+              <FaLandmark className="text-blue-500 mr-2 text-xl" />
+            )}
+            {tripDetails.tripDetails.tripType === "Romantic" && (
+              <FaHeart className="text-blue-500 mr-2 text-xl" />
+            )}
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Trip Type:</span>{" "}
+              {tripDetails.tripDetails.tripType || "N/A"}
+            </p>
+          </div>
+
+          {/* Trip Duration */}
+          <div className="flex items-center">
+            <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Trip Duration:</span>{" "}
+              {tripDetails.tripDetails.duration || "N/A"}
+            </p>
+          </div>
+
+          {/* Budget */}
+          <div className="flex items-center">
+            <FaDollarSign className="text-blue-500 mr-2 text-xl" />
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Budget:</span>{" "}
+              {tripDetails.tripDetails.budget || "N/A"}
+            </p>
+          </div>
+
+          {/* Travel Companion */}
+          <div className="flex items-center">
+            <FaUserFriends className="text-blue-500 mr-2 text-xl" />
+            <p className="text-xl text-gray-700">
+              <span className="font-semibold">Travel Companion:</span>{" "}
+              {tripDetails.tripDetails.travelers || "N/A"}
+            </p>
+          </div>
+
+          {/* Hotel Options */}
+          <div className="mt-8">
+            <h3 className="text-2xl font-semibold text-blue-700 mb-4">
+              Hotel Options
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tripDetails.hotelOptions && tripDetails.hotelOptions.length > 0 ? (
+                tripDetails.hotelOptions.map((hotel, index) => (
+                  <div
+                    key={index}
+                    className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    <img
+                      src={hotel.hotelImageURL}
+                      alt={hotel.hotelName}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <h4 className="text-xl font-semibold mt-4">{hotel.hotelName}</h4>
+                    <p className="text-gray-600">{hotel.hotelAddress}</p>
+                    <p className="text-gray-600">{hotel.price}</p>
+                    <p className="text-gray-600">Rating: {hotel.rating}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-600">No hotel options available.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Itinerary */}
+          <div className="mt-8">
+            <h3 className="text-2xl font-semibold text-blue-700 mb-4">
+              Itinerary
+            </h3>
+            {tripDetails.itinerary && Object.keys(tripDetails.itinerary).length > 0 ? (
+              Object.entries(tripDetails.itinerary).map(([day, plan]) => (
+                <div key={day} className="mb-6">
+                  <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                    {day}: {plan.theme}
+                  </h4>
+                  <div className="space-y-4">
+                    {plan.plan.map((activity, index) => (
+                      <div
+                        key={index}
+                        className="bg-white p-4 rounded-lg shadow-md"
+                      >
+                        <h5 className="text-lg font-semibold">{activity.placeName}</h5>
+                        <p className="text-gray-600">{activity.placeDetails}</p>
+                        <p className="text-gray-600">
+                          Ticket Price: {activity.ticketPricing}
+                        </p>
+                        <p className="text-gray-600">Rating: {activity.rating}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600">No itinerary available.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        >
+          Go Back
+        </button>
       </div>
-
-      {/* Edit Modal */}
-      {isEditing && (
-        <Modal onClose={() => setIsEditing(false)}>
-          <Input
-            label="Destination"
-            value={editedTrip.destination}
-            onChange={(e) => setEditedTrip({ ...editedTrip, destination: e.target.value })}
-          />
-          <Input
-            label="Budget"
-            type="number"
-            value={editedTrip.budget}
-            onChange={(e) => setEditedTrip({ ...editedTrip, budget: e.target.value })}
-          />
-          <Input
-            label="Start Date"
-            type="date"
-            value={editedTrip.startDate}
-            onChange={(e) => setEditedTrip({ ...editedTrip, startDate: e.target.value })}
-          />
-          <Input
-            label="End Date"
-            type="date"
-            value={editedTrip.endDate}
-            onChange={(e) => setEditedTrip({ ...editedTrip, endDate: e.target.value })}
-          />
-          <Input
-            label="Description"
-            multiline
-            rows={4}
-            value={editedTrip.description}
-            onChange={(e) => setEditedTrip({ ...editedTrip, description: e.target.value })}
-          />
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleSave}>Save</Button>
-            <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-          </div>
-        </Modal>
-      )}
-
-      {/* Delete Modal */}
-      {deleteModal && (
-        <Modal onClose={() => setDeleteModal(false)}>
-          <h2>Are you sure you want to delete this trip?</h2>
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleDelete}>Yes, Delete</Button>
-            <Button onClick={() => setDeleteModal(false)}>Cancel</Button>
-          </div>
-        </Modal>
-      )}
-    </div>
+    </section>
   );
 };
 
-export default ViewTripPage;
+export default ViewTrip;
+
+
+
+
+// import { useParams } from "react-router-dom";
+
+// const ViewTrip = () => {
+//   const { tripId } = useParams();
+
+//   return (
+//     <div>
+//       <h1>Viewing Trip: {tripId}</h1>
+//     </div>
+//   );
+// };
+
+// export default ViewTrip;
