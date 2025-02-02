@@ -11,6 +11,8 @@ import {
   FaUmbrellaBeach,
   FaLandmark,
   FaHeart,
+  FaStar, 
+  FaMap, 
 } from "react-icons/fa";
 
 const ViewTrip = () => {
@@ -151,7 +153,7 @@ const ViewTrip = () => {
 
         {/* Hotel Options */}
         <div className="mt-8">
-          <h3 className="text-2xl font-semibold text-blue-700 mb-4">
+          <h3 className="text-2xl font-semibold text-blue-700 mb-6">
             Hotel Options
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,26 +167,46 @@ const ViewTrip = () => {
                 return (
                   <div
                     key={index}
-                    className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                    className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
                   >
+                    {/* Hotel Image */}
                     <img
                       src={hotel.hotelImageURL}
                       alt={hotel.hotelName}
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-48 object-cover rounded-lg mb-4"
                     />
-                    <h4 className="text-xl font-semibold mt-4">
+
+                    {/* Hotel Name */}
+                    <h4 className="text-xl font-semibold text-gray-800 mb-2">
                       {hotel.hotelName}
                     </h4>
-                    <p className="text-gray-600">{hotel.hotelAddress}</p>
-                    <p className="text-gray-600">{hotel.price}</p>
-                    <p className="text-gray-600">Rating: {hotel.rating}</p>
+
+                    {/* Hotel Address */}
+                    <div className="flex items-center text-gray-600 mb-2">
+                      <FaMapMarkerAlt className="text-blue-500 mr-2" />
+                      <p>{hotel.hotelAddress}</p>
+                    </div>
+
+                    {/* Hotel Price */}
+                    <div className="flex items-center text-gray-600 mb-2">
+                      <FaDollarSign className="text-blue-500 mr-2" />
+                      <p>{hotel.price}</p>
+                    </div>
+
+                    {/* Hotel Rating */}
+                    <div className="flex items-center text-gray-600 mb-4">
+                      <FaStar className="text-blue-500 mr-2" />
+                      <p>Rating: {hotel.rating}</p>
+                    </div>
+
                     {/* Map Link */}
                     <a
                       href={mapLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block mt-2 text-blue-600 hover:text-blue-800"
+                      className="inline-flex items-center mt-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
                     >
+                      <FaMap className="mr-2" />
                       View on Map
                     </a>
                   </div>
