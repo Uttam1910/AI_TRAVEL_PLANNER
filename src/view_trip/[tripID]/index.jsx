@@ -69,12 +69,22 @@ const ViewTrip = () => {
     <section className="bg-white py-16 px-6">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-4xl font-extrabold text-blue-600 mb-6">
-          Your Trip Details
+          {/* Your Trip Details */}
         </h2>
 
-        <div className="space-y-6">
+        {/* Trip Photo */}
+        <div className="mb-8">
+          <img
+            src={tripDetails.tripDetails.tripPhotoURL || "/view.jpg"}
+            alt="Trip"
+            className="w-full h-96 object-cover rounded-lg shadow-lg"
+          />
+        </div>
+
+        {/* Trip Details in Horizontal Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Destination */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             <FaMapMarkerAlt className="text-blue-500 mr-2 text-xl" />
             <p className="text-xl text-gray-700">
               <span className="font-semibold">Destination:</span>{" "}
@@ -83,7 +93,7 @@ const ViewTrip = () => {
           </div>
 
           {/* Travel Dates */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
             <p className="text-xl text-gray-700">
               <span className="font-semibold">Travel Dates:</span>{" "}
@@ -92,7 +102,7 @@ const ViewTrip = () => {
           </div>
 
           {/* Trip Category */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             {tripDetails.tripDetails.tripType === "Adventure" && (
               <FaMountain className="text-blue-500 mr-2 text-xl" />
             )}
@@ -112,7 +122,7 @@ const ViewTrip = () => {
           </div>
 
           {/* Trip Duration */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
             <p className="text-xl text-gray-700">
               <span className="font-semibold">Trip Duration:</span>{" "}
@@ -121,7 +131,7 @@ const ViewTrip = () => {
           </div>
 
           {/* Budget */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             <FaDollarSign className="text-blue-500 mr-2 text-xl" />
             <p className="text-xl text-gray-700">
               <span className="font-semibold">Budget:</span>{" "}
@@ -130,22 +140,29 @@ const ViewTrip = () => {
           </div>
 
           {/* Travel Companion */}
-          <div className="flex items-center">
+          <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
             <FaUserFriends className="text-blue-500 mr-2 text-xl" />
             <p className="text-xl text-gray-700">
               <span className="font-semibold">Travel Companion:</span>{" "}
               {tripDetails.tripDetails.travelers || "N/A"}
             </p>
           </div>
+        </div>
 
-          {/* Hotel Options */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-4">
-              Hotel Options
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tripDetails.hotelOptions && tripDetails.hotelOptions.length > 0 ? (
-                tripDetails.hotelOptions.map((hotel, index) => (
+        {/* Hotel Options */}
+        <div className="mt-8">
+          <h3 className="text-2xl font-semibold text-blue-700 mb-4">
+            Hotel Options
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tripDetails.hotelOptions && tripDetails.hotelOptions.length > 0 ? (
+              tripDetails.hotelOptions.map((hotel, index) => {
+                // Generate Google Maps link using the hotel's address
+                const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  hotel.hotelAddress
+                )}`;
+
+                return (
                   <div
                     key={index}
                     className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
@@ -155,50 +172,64 @@ const ViewTrip = () => {
                       alt={hotel.hotelName}
                       className="w-full h-48 object-cover rounded-lg"
                     />
-                    <h4 className="text-xl font-semibold mt-4">{hotel.hotelName}</h4>
+                    <h4 className="text-xl font-semibold mt-4">
+                      {hotel.hotelName}
+                    </h4>
                     <p className="text-gray-600">{hotel.hotelAddress}</p>
                     <p className="text-gray-600">{hotel.price}</p>
                     <p className="text-gray-600">Rating: {hotel.rating}</p>
+                    {/* Map Link */}
+                    <a
+                      href={mapLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 text-blue-600 hover:text-blue-800"
+                    >
+                      View on Map
+                    </a>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-600">No hotel options available.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Itinerary */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-4">
-              Itinerary
-            </h3>
-            {tripDetails.itinerary && Object.keys(tripDetails.itinerary).length > 0 ? (
-              Object.entries(tripDetails.itinerary).map(([day, plan]) => (
-                <div key={day} className="mb-6">
-                  <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                    {day}: {plan.theme}
-                  </h4>
-                  <div className="space-y-4">
-                    {plan.plan.map((activity, index) => (
-                      <div
-                        key={index}
-                        className="bg-white p-4 rounded-lg shadow-md"
-                      >
-                        <h5 className="text-lg font-semibold">{activity.placeName}</h5>
-                        <p className="text-gray-600">{activity.placeDetails}</p>
-                        <p className="text-gray-600">
-                          Ticket Price: {activity.ticketPricing}
-                        </p>
-                        <p className="text-gray-600">Rating: {activity.rating}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <p className="text-gray-600">No itinerary available.</p>
+              <p className="text-gray-600">No hotel options available.</p>
             )}
           </div>
+        </div>
+
+        {/* Itinerary */}
+        <div className="mt-8">
+          <h3 className="text-2xl font-semibold text-blue-700 mb-4">
+            Itinerary
+          </h3>
+          {tripDetails.itinerary &&
+          Object.keys(tripDetails.itinerary).length > 0 ? (
+            Object.entries(tripDetails.itinerary).map(([day, plan]) => (
+              <div key={day} className="mb-6">
+                <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                  {day}: {plan.theme}
+                </h4>
+                <div className="space-y-4">
+                  {plan.plan.map((activity, index) => (
+                    <div
+                      key={index}
+                      className="bg-white p-4 rounded-lg shadow-md"
+                    >
+                      <h5 className="text-lg font-semibold">
+                        {activity.placeName}
+                      </h5>
+                      <p className="text-gray-600">{activity.placeDetails}</p>
+                      <p className="text-gray-600">
+                        Ticket Price: {activity.ticketPricing}
+                      </p>
+                      <p className="text-gray-600">Rating: {activity.rating}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-600">No itinerary available.</p>
+          )}
         </div>
 
         {/* Back Button */}
@@ -214,20 +245,3 @@ const ViewTrip = () => {
 };
 
 export default ViewTrip;
-
-
-
-
-// import { useParams } from "react-router-dom";
-
-// const ViewTrip = () => {
-//   const { tripId } = useParams();
-
-//   return (
-//     <div>
-//       <h1>Viewing Trip: {tripId}</h1>
-//     </div>
-//   );
-// };
-
-// export default ViewTrip;
