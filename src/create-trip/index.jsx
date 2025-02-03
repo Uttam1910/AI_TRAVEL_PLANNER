@@ -89,113 +89,6 @@ const CreateTrip = () => {
     });
   };
 
-  // Function to generate the trip plan by sending data to the backend
-  // const generateTripPlan = async () => {
-  //   setIsLoading(true); // Set loading state to true
-  //   const url = "http://localhost:5000/plans"; // URL of the backend API
-  //   const requestBody = {
-  //     location: formData.destination,
-  //     date: formData.travelDates,
-  //     tripType: formData.tripCategory,
-  //     duration: formData.tripDuration,
-  //     budget: formData.budget,
-  //     travelCompanion: formData.travelCompanion,
-  //   };
-
-  //   try {
-  //     // Send a POST request to the backend with the form data
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json", // Content type for JSON data
-  //       },
-  //       body: JSON.stringify(requestBody), // Send form data as JSON
-  //     });
-
-  //     // Check if response is successful
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-
-  //     const data = await response.json(); // Parse the response as JSON
-  //     console.log("Backend response:", data); // Log the backend response
-  //     setTripPlan(data); // Set the trip plan state with the response
-  //     setRawResponse(data); // Set the raw response data
-
-  //     if (!data.tripId) {
-  //       console.error("Trip ID not found in response");
-  //       return;
-  //     }
-  
-  //     // Save trip to Firebase if needed
-  //     await saveTripDetails(data);
-  
-  //     // Navigate to view trip page with the unique trip ID
-  //     // navigate(`/viewTrip/${data.tripId}`);
-  //     navigate(`/viewTrip/${response.tripId}`); // Correct navigation
-
-  //   } catch (error) {
-  //     console.error("Error generating trip plan:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-  
-
-
-  // const generateTripPlan = async () => {
-  //   setIsLoading(true); // Set loading state to true
-  //   const url = "http://localhost:5000/plans"; // URL of the backend API
-  //   const requestBody = {
-  //     location: formData.destination,
-  //     date: formData.travelDates,
-  //     tripType: formData.tripCategory,
-  //     duration: formData.tripDuration,
-  //     budget: formData.budget,
-  //     travelCompanion: formData.travelCompanion,
-  //   };
-  
-  //   try {
-  //     // Send a POST request to the backend with the form data
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json", // Content type for JSON data
-  //       },
-  //       body: JSON.stringify(requestBody), // Send form data as JSON
-  //     });
-  
-  //     // Check if response is successful
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  
-  //     const data = await response.json(); // Parse the response as JSON
-  //     console.log("Backend response:", data); // Log the backend response
-  //     setTripPlan(data); // Set the trip plan state with the response
-  //     setRawResponse(data); // Set the raw response data
-  
-  //     if (!data.tripId) {
-  //       console.error("Trip ID not found in response");
-  //       return;
-  //     }
-  
-  //     // Save trip to Firebase if needed
-  //     await saveTripDetails(data);
-  
-  //     // Navigate to the view trip page using the unique trip ID
-  //     navigate(`/view_Trip/${data.tripId}`); // Correct navigation with the tripId from response
-    
-  
-  //   } catch (error) {
-  //     console.error("Error generating trip plan:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-  
-
-
   const generateTripPlan = async () => {
     setIsLoading(true);
     const url = "http://localhost:5000/plans";
@@ -207,7 +100,7 @@ const CreateTrip = () => {
       budget: formData.budget,
       travelCompanion: formData.travelCompanion,
     };
-  
+
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -216,22 +109,22 @@ const CreateTrip = () => {
         },
         body: JSON.stringify(requestBody),
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       console.log("Backend response:", data);
-  
+
       if (!data.tripId) {
         console.error("Trip ID not found in response");
         return;
       }
-  
+
       // Save trip to Firebase using the tripId from the backend response
       await saveTripDetails(data, data.tripId);
-  
+
       // Navigate to the view trip page using the tripId
       navigate(`/view_Trip/${data.tripId}`);
     } catch (error) {
@@ -240,9 +133,6 @@ const CreateTrip = () => {
       setIsLoading(false);
     }
   };
-
-
-
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -498,19 +388,3 @@ const CreateTrip = () => {
 };
 
 export default CreateTrip;
-
-/* 
-
-
-{tripPlan && (  // This is a conditional rendering, meaning the code inside will be rendered only if tripPlan exists (i.e., it has a truthy value)
-  <div className="mt-12 bg-blue-50 p-6 rounded-lg shadow-lg">  // A div element with Tailwind CSS classes for styling (margin-top, background color, padding, rounded corners, and shadow)
-    <h3 className="text-2xl font-semibold text-blue-700 mb-4">  // Heading for the section, styled with font size, weight, color, and margin-bottom
-      Your Generated Trip Plan:  // The text displayed inside the heading
-    </h3>
-    <pre className="text-left whitespace-pre-wrap bg-gray-100 p-4 rounded-lg">  // The preformatted block for displaying the JSON response, with custom styling for left alignment, wrapping whitespace, background color, padding, and rounded corners
-      {JSON.stringify(rawResponse, null, 2)}  // JSON.stringify() converts the rawResponse (assumed to be an object) into a formatted string with indentation (2 spaces). This is displayed inside the <pre> block.
-    </pre>
-  </div>
-)}  // The closing of the conditional rendering and the div block.
-
- */
