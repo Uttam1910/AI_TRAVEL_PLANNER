@@ -41,6 +41,21 @@ const ViewTrip = () => {
         if (!details) {
           throw new Error("Trip not found");
         }
+
+        // Fetch destination photo using Google Places API
+        const destination = details.tripDetails.location;
+        if (destination) {
+          const response = await GetPlaceDetails({ textQuery: destination });
+          if (response?.data?.places?.length > 0) {
+            const placeDetails = response.data.places[0];
+            if (placeDetails.photos?.length > 0) {
+              const photoReference = placeDetails.photos[0].name;
+              const photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
+              details.tripDetails.tripPhotoURL = photoUrl;
+            }
+          }
+        }
+
         setTripDetails(details);
       } catch (err) {
         setError(err.message);
@@ -52,43 +67,39 @@ const ViewTrip = () => {
     fetchTripDetails();
   }, [tripId]);
 
-  const [isDataFetched, setIsDataFetched] = useState(false);
-
-  
-
-
+  const [detailsFetched, setDetailsFetched] = useState(false);
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
       try {
-        console.log("Checking API Key:", import.meta.env.VITE_GOOGLE_API_KEY); // Debug API Key
-  
+        console.log("Checking API Key:", import.meta.env.VITE_GOOGLE_API_KEY);
+
         if (!import.meta.env.VITE_GOOGLE_API_KEY) {
           console.error("❌ API key is missing! Check your .env file.");
           return;
         }
-  
+
         const updatedHotels = await Promise.all(
           tripDetails.hotelOptions.map(async (hotel, index) => {
-            await new Promise((resolve) => setTimeout(resolve, index * 1000)); // Delay requests
-  
+            await new Promise((resolve) => setTimeout(resolve, index * 1000));
+
             try {
-              console.log(`Fetching details for hotel: ${hotel.hotelName}`); // Debug hotel name
+              console.log(`Fetching details for hotel: ${hotel.hotelName}`);
               const response = await GetPlaceDetails({ textQuery: hotel.hotelName });
-  
-              if (!response || !response.data || !response.data.places || response.data.places.length === 0) {
+
+              if (!response || !response.data?.places?.length) {
                 console.warn(`⚠️ No place details found for: ${hotel.hotelName}`);
-                return hotel; // Return original data if API response is empty
+                return hotel;
               }
-  
+
               const placeDetails = response.data.places[0];
               let photoUrl = "/view.jpg";
-  
-              if (placeDetails.photos && placeDetails.photos.length > 0) {
+
+              if (placeDetails.photos?.length) {
                 const photoReference = placeDetails.photos[0].name;
                 photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
               }
-  
+
               return {
                 ...hotel,
                 googlePlaceDetails: placeDetails,
@@ -100,30 +111,30 @@ const ViewTrip = () => {
             }
           })
         );
-  
+
         const updatedItinerary = { ...tripDetails.itinerary };
         for (const day in updatedItinerary) {
           updatedItinerary[day].plan = await Promise.all(
             updatedItinerary[day].plan.map(async (activity, index) => {
-              await new Promise((resolve) => setTimeout(resolve, index * 1000)); // Delay requests
-  
+              await new Promise((resolve) => setTimeout(resolve, index * 1000));
+
               try {
-                console.log(`Fetching details for activity: ${activity.placeName}`); // Debug activity name
+                console.log(`Fetching details for activity: ${activity.placeName}`);
                 const response = await GetPlaceDetails({ textQuery: activity.placeName });
-  
-                if (!response || !response.data || !response.data.places || response.data.places.length === 0) {
+
+                if (!response || !response.data?.places?.length) {
                   console.warn(`⚠️ No place details found for: ${activity.placeName}`);
                   return activity;
                 }
-  
+
                 const placeDetails = response.data.places[0];
                 let photoUrl = "https://via.placeholder.com/300";
-  
-                if (placeDetails.photos && placeDetails.photos.length > 0) {
+
+                if (placeDetails.photos?.length) {
                   const photoReference = placeDetails.photos[0].name;
                   photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
                 }
-  
+
                 return {
                   ...activity,
                   googlePlaceDetails: placeDetails,
@@ -136,23 +147,23 @@ const ViewTrip = () => {
             })
           );
         }
-  
+
         setTripDetails((prev) => ({
           ...prev,
           hotelOptions: updatedHotels,
           itinerary: updatedItinerary,
         }));
+
+        setDetailsFetched(true); // ✅ Prevent infinite re-fetching
       } catch (err) {
         console.error("❌ Error in fetchPlaceDetails function:", err);
       }
     };
-  
-    if (tripDetails.hotelOptions.length > 0 || Object.keys(tripDetails.itinerary).length > 0) {
+
+    if (!detailsFetched && (tripDetails.hotelOptions.length > 0 || Object.keys(tripDetails.itinerary).length > 0)) {
       fetchPlaceDetails();
     }
-  }, [tripDetails.hotelOptions, tripDetails.itinerary]);
-  
-  
+  }, [tripDetails.hotelOptions, tripDetails.itinerary, detailsFetched]); // ✅ Added detailsFetched dependency
 
   if (isLoading) {
     return (
