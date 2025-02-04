@@ -1,7 +1,7 @@
 // import React, { useState, useEffect } from "react";
 // import { Link } from "react-router-dom";
 // import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-// import { FaBars, FaTimes, FaGoogle, FaUserCircle } from "react-icons/fa";
+// import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 
 // const Header = () => {
 //   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,7 +19,8 @@
 //     }
 //   }, []);
 
-//   const handleSuccess = (response) => {
+//   const handleGoogleLoginSuccess = (response) => {
+//     // Fetch user profile using the access token
 //     fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
 //       headers: { Authorization: `Bearer ${response.credential}` },
 //     })
@@ -29,20 +30,19 @@
 //         localStorage.setItem("authToken", response.credential);
 //         localStorage.setItem("googleProfile", JSON.stringify(profile));
 
-//         // Update state
+//         // Update state to reflect authentication
 //         setIsAuthenticated(true);
 //         setUserProfile(profile);
 //       })
 //       .catch((error) => console.error("Failed to fetch user profile", error));
 //   };
 
-//   const handleFailure = (error) => {
-//     console.error("Google login failed", error);
-//   };
-
 //   const handleLogout = () => {
-//     localStorage.removeItem("googleAuthToken");
+//     // Remove the token and profile from localStorage
+//     localStorage.removeItem("authToken");
 //     localStorage.removeItem("googleProfile");
+
+//     // Update state to reflect logout
 //     setIsAuthenticated(false);
 //     setUserProfile(null);
 //   };
@@ -119,12 +119,11 @@
 //               </button>
 //             </div>
 //           ) : (
-//             <div className="mr-2 mt-2">
-//               <GoogleLogin
-//                 onSuccess={handleSuccess}
-//                 onError={handleFailure}
-//               />
-//             </div>
+//             <GoogleLogin
+//               onSuccess={handleGoogleLoginSuccess}
+//               onError={() => console.error("Google login failed")}
+//               className="mr-2 mt-2"
+//             />
 //           )}
 //         </nav>
 //       </header>
@@ -243,24 +242,31 @@ const Header = () => {
                 <img
                   src={userProfile.picture}
                   alt="Profile"
-                  className="w-10 h-10 rounded-full"
+                  className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
                 />
               ) : (
-                <FaUserCircle className="text-3xl" />
+                <FaUserCircle className="text-3xl text-white" />
               )}
               <button
                 onClick={handleLogout}
-                className="bg-black text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-md"
+                className="bg-white text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={() => console.error("Google login failed")}
-              className="mr-2 mt-2"
-            />
+            <div className="mr-2 mt-2">
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={() => console.error("Google login failed")}
+                theme="filled_blue"
+                size="medium"
+                shape="pill"
+                text="signin_with"
+                logo_alignment="left"
+                width="200"
+              />
+            </div>
           )}
         </nav>
       </header>
