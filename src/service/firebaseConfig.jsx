@@ -21,22 +21,6 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firestore for database operations
 const db = getFirestore(app);
 
-// Function to save trip details to Firestore
-// export const saveTripDetails = async (tripData) => {
-//   try {
-//     // Reference to the 'trips' collection in Firestore database
-//     const tripCollectionRef = collection(db, "trips");
-
-//     // Add the trip data (tripData) to the Firestore 'trips' collection
-//     const docRef = await addDoc(tripCollectionRef, tripData);
-
-//     // Log the ID of the document that was added to the collection
-//     console.log("Document written with ID: ", docRef.id);
-//   } catch (e) {
-//     // Log any errors that occur during the operation
-//     console.error("Error adding document: ", e);
-//   }
-// };
 
 
 export const saveTripDetails = async (tripData, tripId) => {
@@ -77,75 +61,3 @@ export const getTripDetails = async (tripId) => {
   }
 };
 
-// import { initializeApp } from "firebase/app";
-// import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from "firebase/firestore";
-
-// const firebaseConfig = {
-//   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-//   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-//   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-//   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-//   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-//   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-//   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-// };
-
-// const app = initializeApp(firebaseConfig);
-// const db = getFirestore(app);
-// const tripsCollection = import.meta.env.VITE_FIRESTORE_TRIPS_COLLECTION || "trips";
-
-// // Validate trip data before saving
-// const validateTripData = (tripData) => {
-//   const requiredFields = [
-//     "destination",
-//     "travelDates",
-//     "tripCategory",
-//     "tripDuration",
-//     "budget",
-//     "travelCompanion",
-//     "tripPlan",
-//   ];
-
-//   for (const field of requiredFields) {
-//     if (!tripData[field]) {
-//       throw new Error(`Missing required field: ${field}`);
-//     }
-//   }
-// };
-
-// // Save trip details to Firestore
-// export const saveTripDetails = async (tripData) => {
-//   try {
-//     validateTripData(tripData); // Validate trip data before saving
-
-//     const tripDataWithTimestamp = {
-//       ...tripData,
-//       createdAt: serverTimestamp(), // Add server-side timestamp
-//     };
-
-//     const tripCollectionRef = collection(db, tripsCollection); // Use environment variable
-//     const docRef = await addDoc(tripCollectionRef, tripDataWithTimestamp);
-//     console.log("Document written with ID: ", docRef.id);
-//     return docRef.id; // Return the document ID for further use
-//   } catch (e) {
-//     console.error("Error adding document: ", e);
-//     throw e; // Re-throw the error for handling in the component
-//   }
-// };
-
-// // Fetch trip details by tripId
-// export const getTripDetails = async (tripId) => {
-//   try {
-//     const tripDocRef = doc(db, tripsCollection, tripId); // Use environment variable
-//     const tripDocSnap = await getDoc(tripDocRef);
-
-//     if (tripDocSnap.exists()) {
-//       return tripDocSnap.data(); // Return the trip data
-//     } else {
-//       throw new Error("Trip not found"); // Throw an error if the trip doesn't exist
-//     }
-//   } catch (e) {
-//     console.error("Error fetching trip details: ", e);
-//     throw e; // Re-throw the error for handling in the component
-//   }
-// };

@@ -1,4 +1,6 @@
-import React, { useState } from "react"; // Import React and useState hook
+import React, { useState, useEffect } from "react";
+// import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -8,30 +10,27 @@ import {
   FaUmbrellaBeach,
   FaLandmark,
   FaHeart,
-} from "react-icons/fa"; // Import specific icons from React Icons
-import Select from "react-select"; // Import Select component for dropdowns
-import GooglePlacesAutocomplete from "react-google-places-autocomplete"; // Import Google Places autocomplete for destination input
-import { GoogleLogin } from "@react-oauth/google"; // Google OAuth library
-import Modal from "react-modal"; // Modal component for displaying authentication prompt
-import { saveTripDetails } from "../service/firebaseConfig"; // Import function to save trip details to Firebase
-import { ClipLoader } from "react-spinners"; // Spinner library for loading indicator
-import { Link, animateScroll as scroll } from "react-scroll"; // Import scroll functionality for smooth scrolling
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation after actions
-import axios from "axios"; // Axios for HTTP requests
+} from "react-icons/fa";
+import Select from "react-select";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import { GoogleLogin } from "@react-oauth/google";
+import Modal from "react-modal";
+import { saveTripDetails } from "../service/firebaseConfig";
+import { ClipLoader } from "react-spinners";
+import { Link, animateScroll as scroll } from "react-scroll";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-Modal.setAppElement("#root"); // Set the app root for accessibility
+Modal.setAppElement("#root");
 
-// Custom component for displaying selected value with an icon in the Select dropdown
 const CustomSingleValue = ({ data }) => (
   <div className="flex items-center">
-    {data.icon && <div className="mr-2 text-xl">{data.icon}</div>}{" "}
-    {/* Display icon if available */}
-    <div>{data.label}</div> {/* Display label of the option */}
+    {data.icon && <div className="mr-2 text-xl">{data.icon}</div>}
+    <div>{data.label}</div>
   </div>
 );
 
 const CreateTrip = () => {
-  // useState hooks to manage form data and application state
   const [formData, setFormData] = useState({
     destination: "",
     travelDates: "",
@@ -42,14 +41,13 @@ const CreateTrip = () => {
     travelCompanion: "",
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication state
-  const [tripPlan, setTripPlan] = useState(null); // Store generated trip plan
-  const [rawResponse, setRawResponse] = useState(null); // Store raw response from the backend
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for authentication prompt
-  const [isLoading, setIsLoading] = useState(false); // Loading state for form submission
-  const navigate = useNavigate(); // Navigation hook
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [tripPlan, setTripPlan] = useState(null);
+  const [rawResponse, setRawResponse] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Options for the trip category select dropdown
   const tripCategoryOptions = [
     { label: "Adventure", value: "Adventure", icon: <FaMountain /> },
     { label: "Beach", value: "Beach", icon: <FaUmbrellaBeach /> },
@@ -57,14 +55,12 @@ const CreateTrip = () => {
     { label: "Romantic", value: "Romantic", icon: <FaHeart /> },
   ];
 
-  // Options for the budget select dropdown
   const budgetOptions = [
     { label: "Cheap", value: "Cheap", icon: <FaDollarSign /> },
     { label: "Moderate", value: "Moderate", icon: <FaDollarSign /> },
     { label: "Luxury", value: "Luxury", icon: <FaDollarSign /> },
   ];
 
-  // Options for the travel companion select dropdown
   const travelCompanionOptions = [
     { label: "Just Me", value: "Just Me", icon: <FaUserFriends /> },
     { label: "A Couple", value: "A Couple", icon: <FaUserFriends /> },
@@ -72,20 +68,18 @@ const CreateTrip = () => {
     { label: "Friends", value: "Friends", icon: <FaUserFriends /> },
   ];
 
-  // Handle changes in text inputs and update form data
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value, // Update the specific field in the form data
+      [name]: value,
     });
   };
 
-  // Handle changes in the select dropdowns and update form data
   const handleSelectChange = (selectedOption, actionMeta) => {
     setFormData({
       ...formData,
-      [actionMeta.name]: selectedOption ? selectedOption.value : "", // Update selected field with its value
+      [actionMeta.name]: selectedOption ? selectedOption.value : "",
     });
   };
 
@@ -122,10 +116,7 @@ const CreateTrip = () => {
         return;
       }
 
-      // Save trip to Firebase using the tripId from the backend response
       await saveTripDetails(data, data.tripId);
-
-      // Navigate to the view trip page using the tripId
       navigate(`/view_Trip/${data.tripId}`);
     } catch (error) {
       console.error("Error generating trip plan:", error);
@@ -134,39 +125,41 @@ const CreateTrip = () => {
     }
   };
 
-  // Handle form submission
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
+    e.preventDefault();
     if (!isAuthenticated) {
-      setIsModalOpen(true); // Open authentication modal if not authenticated
+      setIsModalOpen(true);
       return;
     }
-
     if (!formData.tripCategory) {
-      alert("Please select a trip type."); // Show alert if trip type is not selected
+      alert("Please select a trip type.");
       return;
     }
-
-    generateTripPlan(); // Proceed to generate trip plan
+    generateTripPlan();
   };
 
-  // Handle successful Google login
   const handleGoogleLoginSuccess = (credentialResponse) => {
-    console.log("Login Success:", credentialResponse); // Log success message
-    setIsAuthenticated(true); // Set authenticated state to true
-    setIsModalOpen(false); // Close authentication modal
+    console.log("Login Success:", credentialResponse);
+    setIsAuthenticated(true);
+    localStorage.setItem("authToken", credentialResponse.credential);
+    setIsModalOpen(false);
   };
 
-  // Handle failed Google login
   const handleGoogleLoginFailure = () => {
-    console.log("Login Failed"); // Log failure message
-    setIsAuthenticated(false); // Set authenticated state to false
+    console.log("Login Failed");
+    setIsAuthenticated(false);
   };
 
   return (
     <section className="bg-white py-16 px-6">
       <div className="max-w-4xl mx-auto text-center">
-        {/* Header */}
         <h2 className="text-4xl font-extrabold text-blue-600 mb-6">
           Ready to Plan Your Dream Trip?
         </h2>
@@ -176,9 +169,7 @@ const CreateTrip = () => {
           🧳✈️
         </p>
 
-        {/* Trip Planning Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Destination Input with Google Places Autocomplete */}
           <div>
             <label
               htmlFor="destination"
@@ -189,15 +180,15 @@ const CreateTrip = () => {
             </label>
 
             <GooglePlacesAutocomplete
-              apiKey={import.meta.env.VITE_GOOGLE_API_KEY} // Use environment variable for API key
+              apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
               selectProps={{
                 value: formData.destination
                   ? { label: formData.destination, value: formData.destination }
-                  : null, // Ensure correct format for selected value
+                  : null,
                 onChange: (selectedOption) =>
                   setFormData({
                     ...formData,
-                    destination: selectedOption?.label || "", // Update destination correctly
+                    destination: selectedOption?.label || "",
                   }),
                 placeholder: "Enter your destination",
                 className: "text-left",
@@ -207,7 +198,6 @@ const CreateTrip = () => {
             />
           </div>
 
-          {/* Travel Dates Input */}
           <div>
             <label
               htmlFor="travelDates"
@@ -217,18 +207,17 @@ const CreateTrip = () => {
               When are you planning to travel?
             </label>
             <input
-              type="text"
+              type="date"
               id="travelDates"
               name="travelDates"
               value={formData.travelDates}
-              onChange={handleInputChange} // Handle change in travel dates
+              onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
               placeholder="e.g. 1st June - 10th June"
-              required // Make this field required
+              required
             />
           </div>
 
-          {/* Trip Category Dropdown */}
           <div>
             <label
               htmlFor="tripCategory"
@@ -239,19 +228,18 @@ const CreateTrip = () => {
             </label>
             <Select
               name="tripCategory"
-              options={tripCategoryOptions} // Pass options for trip categories
+              options={tripCategoryOptions}
               value={tripCategoryOptions.find(
                 (option) => option.value === formData.tripCategory
               )}
-              onChange={handleSelectChange} // Handle change in trip category
+              onChange={handleSelectChange}
               components={{ SingleValue: CustomSingleValue }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
               placeholder="Select a trip type"
-              required // Make this field required
+              required
             />
           </div>
 
-          {/* Trip Duration Input */}
           <div>
             <label
               htmlFor="tripDuration"
@@ -265,14 +253,13 @@ const CreateTrip = () => {
               id="tripDuration"
               name="tripDuration"
               value={formData.tripDuration}
-              onChange={handleInputChange} // Handle change in trip duration
+              onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
               placeholder="e.g. 7 days"
-              required // Make this field required
+              required
             />
           </div>
 
-          {/* Budget Dropdown */}
           <div>
             <label
               htmlFor="budget"
@@ -283,19 +270,18 @@ const CreateTrip = () => {
             </label>
             <Select
               name="budget"
-              options={budgetOptions} // Pass options for budget
+              options={budgetOptions}
               value={budgetOptions.find(
                 (option) => option.value === formData.budget
               )}
-              onChange={handleSelectChange} // Handle change in budget
+              onChange={handleSelectChange}
               components={{ SingleValue: CustomSingleValue }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
               placeholder="Select your budget"
-              required // Make this field required
+              required
             />
           </div>
 
-          {/* Travel Companion Dropdown */}
           <div>
             <label
               htmlFor="travelCompanion"
@@ -306,43 +292,38 @@ const CreateTrip = () => {
             </label>
             <Select
               name="travelCompanion"
-              options={travelCompanionOptions} // Pass options for travel companions
+              options={travelCompanionOptions}
               value={travelCompanionOptions.find(
                 (option) => option.value === formData.travelCompanion
               )}
-              onChange={handleSelectChange} // Handle change in travel companion
+              onChange={handleSelectChange}
               components={{ SingleValue: CustomSingleValue }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
               placeholder="Select your travel companion"
-              required // Make this field required
+              required
             />
           </div>
 
-          {/* Submit Button */}
           <div>
             <button
               type="submit"
               className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-              disabled={isLoading} // Disable the button while loading
+              disabled={isLoading}
             >
-              {isLoading ? "Generating Trip Plan..." : "Generate Trip Plan"}{" "}
-              {/* Change button text based on loading state */}
+              {isLoading ? "Generating Trip Plan..." : "Generate Trip Plan"}
             </button>
           </div>
         </form>
 
-        {/* Loading Spinner */}
         {isLoading && (
           <div className="mt-6">
-            <ClipLoader size={50} color="#1d4ed8" />{" "}
-            {/* Display loading spinner */}
+            <ClipLoader size={50} color="#1d4ed8" />
             <p className="text-gray-500 mt-3">
               Please wait, generating your trip plan...
             </p>
           </div>
         )}
 
-        {/* Modal for Google Login */}
         <Modal
           isOpen={isModalOpen}
           onRequestClose={() => setIsModalOpen(false)}
@@ -358,13 +339,13 @@ const CreateTrip = () => {
               proceed.
             </p>
             <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess} // Handle success login
-              onError={handleGoogleLoginFailure} // Handle failed login
-              className="w-full mb-6" // Styling for Google login button
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginFailure}
+              className="w-full mb-6"
             />
             <br />
             <button
-              onClick={() => setIsModalOpen(false)} // Close modal on cancel
+              onClick={() => setIsModalOpen(false)}
               className="w-full py-2 px-4 bg-gray-700 text-white font-semibold rounded-lg transition hover:bg-gray-800 focus:ring focus:ring-gray-400 focus:outline-none"
             >
               Cancel
