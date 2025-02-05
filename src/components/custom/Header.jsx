@@ -146,7 +146,7 @@ const Header = () => {
 
   // Check localStorage for authentication data on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("googleAuthToken");
+    const storedToken = localStorage.getItem("authToken");
     const storedProfile = localStorage.getItem("googleProfile");
 
     if (storedToken && storedProfile) {
