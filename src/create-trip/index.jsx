@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   FaMapMarkerAlt,
@@ -17,9 +16,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import Modal from "react-modal";
 import { saveTripDetails } from "../service/firebaseConfig";
 import { ClipLoader } from "react-spinners";
-import { Link, animateScroll as scroll } from "react-scroll";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 Modal.setAppElement("#root");
 
@@ -132,6 +129,19 @@ const CreateTrip = () => {
     }
   }, []);
 
+  // This effect listens for the custom "authChanged" event and updates the auth state accordingly.
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const token = localStorage.getItem("authToken");
+      setIsAuthenticated(!!token);
+    };
+
+    window.addEventListener("authChanged", handleAuthChange);
+    return () => {
+      window.removeEventListener("authChanged", handleAuthChange);
+    };
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -145,11 +155,28 @@ const CreateTrip = () => {
     generateTripPlan();
   };
 
+  // Updated login success callback:
   const handleGoogleLoginSuccess = (credentialResponse) => {
     console.log("Login Success:", credentialResponse);
-    setIsAuthenticated(true);
-    localStorage.setItem("authToken", credentialResponse.credential);
-    setIsModalOpen(false);
+    // Fetch user profile using the access token from tokenResponse
+    fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+    })
+    
+      .then((res) => res.json())
+      .then((profile) => {
+        // Save token and profile to localStorage
+        localStorage.setItem("authToken", credentialResponse.credential);
+        localStorage.setItem("googleProfile", JSON.stringify(profile));
+        setIsAuthenticated(true);
+        setIsModalOpen(false);
+        // Dispatch custom event so Header updates its state
+        window.dispatchEvent(new Event("authChanged"));
+      })
+      .catch((error) => {
+        console.error("Failed to fetch user profile:", error);
+        setIsModalOpen(false);
+      });
   };
 
   const handleGoogleLoginFailure = () => {
@@ -165,8 +192,7 @@ const CreateTrip = () => {
         </h2>
         <p className="text-lg text-gray-600 mb-8">
           Let's get started by filling in some details. Our smart tool will help
-          you plan an unforgettable trip based on your preferences and budget.
-          🧳✈️
+          you plan an unforgettable trip based on your preferences and budget. 🧳✈️
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -194,7 +220,7 @@ const CreateTrip = () => {
                 className: "text-left",
               }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
-    focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+              focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
             />
           </div>
 

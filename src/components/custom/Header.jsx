@@ -9,15 +9,34 @@ const Header = () => {
   const [userProfile, setUserProfile] = useState(null);
   const navigate = useNavigate();
 
-  // Check localStorage for authentication data on mount
-  useEffect(() => {
+  // Function to update state from localStorage
+  const updateAuthState = () => {
     const storedToken = localStorage.getItem("authToken");
     const storedProfile = localStorage.getItem("googleProfile");
-
     if (storedToken && storedProfile) {
       setIsAuthenticated(true);
       setUserProfile(JSON.parse(storedProfile));
+    } else {
+      setIsAuthenticated(false);
+      setUserProfile(null);
     }
+  };
+
+  // Check auth state on mount
+  useEffect(() => {
+    updateAuthState();
+  }, []);
+
+  // Listen for the custom "authChanged" event to update the auth state
+  useEffect(() => {
+    const handleAuthChange = () => {
+      updateAuthState();
+    };
+
+    window.addEventListener("authChanged", handleAuthChange);
+    return () => {
+      window.removeEventListener("authChanged", handleAuthChange);
+    };
   }, []);
 
   const handleGoogleLoginSuccess = (tokenResponse) => {
@@ -31,9 +50,12 @@ const Header = () => {
         localStorage.setItem("authToken", tokenResponse.access_token);
         localStorage.setItem("googleProfile", JSON.stringify(profile));
 
-        // Update state to reflect authentication
+        // Update local state immediately
         setIsAuthenticated(true);
         setUserProfile(profile);
+
+        // Dispatch a custom event so that other components (like CreateTripPlan) know about the change
+        window.dispatchEvent(new Event("authChanged"));
       })
       .catch((error) => console.error("Failed to fetch user profile", error));
   };
@@ -53,6 +75,9 @@ const Header = () => {
     setIsAuthenticated(false);
     setUserProfile(null);
 
+    // Dispatch a custom event so that any other component can update accordingly
+    window.dispatchEvent(new Event("authChanged"));
+
     // Redirect the user to the home page
     navigate("/");
   };
@@ -71,8 +96,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          
-          {/* <ul className="hidden md:flex gap-6 text-lg font-medium">
+          <ul className="hidden md:flex gap-6 text-lg font-medium">
             {["Explore", "Trips", "About"].map((item) => (
               <li key={item}>
                 <Link
@@ -83,8 +107,7 @@ const Header = () => {
                 </Link>
               </li>
             ))}
-          </ul> */}
-          
+          </ul>
 
           {/* Mobile Menu Icon */}
           <div
