@@ -23,14 +23,39 @@ const db = getFirestore(app);
 
 
 
+// export const saveTripDetails = async (tripData, tripId) => {
+//   try {
+//     // Reference to the specific trip document using the tripId
+//     const tripDocRef = doc(db, "trips", tripId);
+
+//     // Save the trip data to Firestore with the specified tripId
+//     await setDoc(tripDocRef, tripData);
+
+//     console.log("Document written with ID: ", tripId);
+//     return tripId; // Return the tripId for further use
+//   } catch (e) {
+//     console.error("Error adding document: ", e);
+//     throw e; // Re-throw the error for handling in the component
+//   }
+// };
+
+
 export const saveTripDetails = async (tripData, tripId) => {
   try {
+    // Retrieve user details from local storage (assumes the details are stored as a JSON string under the key "userDetail")
+    const userDetailsStr = localStorage.getItem('googleProfile');
+    if (userDetailsStr) {
+      // Parse the JSON string to an object and add it to the trip data
+      const userDetails = JSON.parse(userDetailsStr);
+      tripData.userDetails = userDetails;
+    } else {
+      console.warn("No user details found in local storage.");
+    }
+
     // Reference to the specific trip document using the tripId
     const tripDocRef = doc(db, "trips", tripId);
-
-    // Save the trip data to Firestore with the specified tripId
+    // Save the trip data (now including user details) to Firestore with the specified tripId
     await setDoc(tripDocRef, tripData);
-
     console.log("Document written with ID: ", tripId);
     return tripId; // Return the tripId for further use
   } catch (e) {
@@ -38,6 +63,9 @@ export const saveTripDetails = async (tripData, tripId) => {
     throw e; // Re-throw the error for handling in the component
   }
 };
+
+
+
 
 
 // Function to fetch trip details by tripId
