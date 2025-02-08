@@ -41,11 +41,23 @@ const TripsHistory = () => {
         console.log("QuerySnapshot size:", querySnapshot.size);
 
         // Map over the results and build an array of trips.
-        const tripsList = querySnapshot.docs.map((doc) => ({
+        let tripsList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("Fetched trips:", tripsList);
+        console.log("Fetched trips before sorting:", tripsList);
+
+        // Sort the trips in ascending order based on the creation timestamp.
+        tripsList = tripsList.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+            // If createdAt is a Firestore Timestamp, convert it to a Date.
+            const dateA = a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+            const dateB = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+            return dateA - dateB; // ascending order (oldest first)
+          }
+          return 0;
+        });
+        console.log("Sorted trips:", tripsList);
 
         // For each trip, use the Google Places API to fetch a fresh image using the destination.
         const updatedTripsList = await Promise.all(
@@ -85,16 +97,37 @@ const TripsHistory = () => {
   }, []);
 
   if (loading) {
-    return <div className="p-4 text-center">Loading trips...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          {/* Spinner */}
+          <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16 mb-4"></div>
+          <p className="text-xl text-gray-700">Loading trips...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
+    return (
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
+        <p className="text-red-500 text-xl mb-4">Error: {error}</p>
+        <button
+          onClick={() => navigate("/")}
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Back to Home
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-6xl mx-auto p-4">
+      {/* Header */}
       <h1 className="text-3xl font-bold mb-8 text-center">Your Trip History</h1>
+
+      {/* Trips Grid */}
       {trips.length === 0 ? (
         <p className="text-center text-gray-600">You have not created any trips yet.</p>
       ) : (
@@ -104,11 +137,10 @@ const TripsHistory = () => {
             return (
               <div
                 key={trip.id}
-                className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-                // Updated onClick: navigate to the correct view trip route.
+                className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer transform hover:-translate-y-1"
                 onClick={() => navigate(`/view_Trip/${trip.id}`)}
               >
-                {/* Trip Photo from Google Places API */}
+                {/* Trip Photo */}
                 <img
                   src={trip.googleImageUrl || "/view.jpg"}
                   alt={details.location || "Trip"}
@@ -116,23 +148,20 @@ const TripsHistory = () => {
                 />
 
                 <div className="p-4">
-                  {/* Trip Title (or Location as fallback) */}
+                  {/* Trip Title */}
                   <h2 className="text-xl font-semibold mb-2">
                     {trip.title || details.location || "Untitled Trip"}
                   </h2>
-                  
                   {/* Destination */}
                   <p className="text-gray-600 mb-1">
                     <span className="font-semibold">Destination:</span>{" "}
                     {details.location || "N/A"}
                   </p>
-                  
                   {/* Travel Dates */}
                   <p className="text-gray-600 mb-1">
                     <span className="font-semibold">Travel Dates:</span>{" "}
                     {details.startDate || "N/A"}
                   </p>
-                  
                   {/* Trip Type */}
                   {details.tripType && (
                     <p className="text-gray-600">
@@ -146,6 +175,16 @@ const TripsHistory = () => {
           })}
         </div>
       )}
+
+      {/* Back Button (only one at the bottom) */}
+      <div className="mt-8 flex justify-center">
+        <button
+          onClick={() => navigate("/")}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        >
+          Back to Home
+        </button>
+      </div>
     </div>
   );
 };
