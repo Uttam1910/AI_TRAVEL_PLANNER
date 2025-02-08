@@ -22,24 +22,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-
-// export const saveTripDetails = async (tripData, tripId) => {
-//   try {
-//     // Reference to the specific trip document using the tripId
-//     const tripDocRef = doc(db, "trips", tripId);
-
-//     // Save the trip data to Firestore with the specified tripId
-//     await setDoc(tripDocRef, tripData);
-
-//     console.log("Document written with ID: ", tripId);
-//     return tripId; // Return the tripId for further use
-//   } catch (e) {
-//     console.error("Error adding document: ", e);
-//     throw e; // Re-throw the error for handling in the component
-//   }
-// };
-
-
 export const saveTripDetails = async (tripData, tripId) => {
   try {
     // Retrieve user details from local storage (assumes the details are stored as a JSON string under the key "userDetail")

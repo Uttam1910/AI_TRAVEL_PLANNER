@@ -32,7 +32,6 @@ const Header = () => {
     const handleAuthChange = () => {
       updateAuthState();
     };
-
     window.addEventListener("authChanged", handleAuthChange);
     return () => {
       window.removeEventListener("authChanged", handleAuthChange);
@@ -49,12 +48,10 @@ const Header = () => {
         // Store the token and profile in localStorage
         localStorage.setItem("authToken", tokenResponse.access_token);
         localStorage.setItem("googleProfile", JSON.stringify(profile));
-
         // Update local state immediately
         setIsAuthenticated(true);
         setUserProfile(profile);
-
-        // Dispatch a custom event so that other components (like CreateTripPlan) know about the change
+        // Dispatch a custom event so that other components know about the change
         window.dispatchEvent(new Event("authChanged"));
       })
       .catch((error) => console.error("Failed to fetch user profile", error));
@@ -70,17 +67,17 @@ const Header = () => {
     // Remove the token and profile from localStorage
     localStorage.removeItem("authToken");
     localStorage.removeItem("googleProfile");
-
     // Update state to reflect logout
     setIsAuthenticated(false);
     setUserProfile(null);
-
     // Dispatch a custom event so that any other component can update accordingly
     window.dispatchEvent(new Event("authChanged"));
-
     // Redirect the user to the home page
     navigate("/");
   };
+
+  // Only show the "Trips" navigation link if authenticated.
+  const navigationItems = isAuthenticated ? ["Trips"] : [];
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
@@ -95,32 +92,36 @@ const Header = () => {
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <ul className="hidden md:flex gap-6 text-lg font-medium">
-            {["Explore", "Trips", "About"].map((item) => (
-              <li key={item}>
-                <Link
-                  to={`/${item.toLowerCase()}`}
-                  className="hover:text-yellow-300 transition duration-300"
-                >
-                  {item}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Navigation: Render only if there are navigation items */}
+          {navigationItems.length > 0 && (
+            <ul className="hidden md:flex gap-6 text-lg font-medium">
+              {navigationItems.map((item) => (
+                <li key={item}>
+                  <Link
+                    to={`/${item.toLowerCase()}`}
+                    className="hover:text-yellow-300 transition duration-300"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
 
-          {/* Mobile Menu Icon */}
-          <div
-            className="md:hidden cursor-pointer"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-          </div>
+          {/* Mobile Menu Icon: Render only if there are navigation items */}
+          {navigationItems.length > 0 && (
+            <div
+              className="md:hidden cursor-pointer"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            </div>
+          )}
 
-          {/* Mobile Dropdown Menu */}
-          {menuOpen && (
+          {/* Mobile Dropdown Menu: Render only if menuOpen and there are navigation items */}
+          {menuOpen && navigationItems.length > 0 && (
             <ul className="absolute top-16 left-0 w-full bg-white text-gray-900 shadow-md p-4 flex flex-col gap-4 md:hidden">
-              {["Explore", "Trips", "About"].map((item) => (
+              {navigationItems.map((item) => (
                 <li key={item}>
                   <Link
                     to={`/${item.toLowerCase()}`}
