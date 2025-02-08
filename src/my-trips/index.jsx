@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestore } from "firebase/firestore";
+import { GetPlaceDetails } from "../service/GlobalApi"; // Import the Google Places API function
 
 const TripsHistory = () => {
   const [trips, setTrips] = useState([]);
@@ -46,7 +47,32 @@ const TripsHistory = () => {
         }));
         console.log("Fetched trips:", tripsList);
 
-        setTrips(tripsList);
+        // For each trip, use the Google Places API to fetch a fresh image using the destination.
+        const updatedTripsList = await Promise.all(
+          tripsList.map(async (trip) => {
+            const details = trip.tripDetails || {};
+            if (details.location) {
+              try {
+                const response = await GetPlaceDetails({ textQuery: details.location });
+                if (response?.data?.places?.length > 0) {
+                  const placeDetails = response.data.places[0];
+                  if (placeDetails.photos?.length > 0) {
+                    const photoReference = placeDetails.photos[0].name;
+                    const photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
+                    return { ...trip, googleImageUrl: photoUrl };
+                  }
+                }
+              } catch (err) {
+                console.error(`Error fetching place details for location: ${details.location}`, err);
+              }
+            }
+            // Fallback: use the trip's stored photo URL or a default image.
+            return { ...trip, googleImageUrl: details.tripPhotoURL || "/view.jpg" };
+          })
+        );
+
+        console.log("Updated trips with Google Image:", updatedTripsList);
+        setTrips(updatedTripsList);
       } catch (err) {
         console.error("Error fetching trips:", err);
         setError("Error fetching trips.");
@@ -74,18 +100,17 @@ const TripsHistory = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map((trip) => {
-            // Assume your trip document has a "tripDetails" object with properties:
-            // tripPhotoURL, location, startDate, tripType, etc.
             const details = trip.tripDetails || {};
             return (
               <div
                 key={trip.id}
                 className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-                onClick={() => navigate(`/trips/${trip.id}`)}
+                // Updated onClick: navigate to the correct view trip route.
+                onClick={() => navigate(`/view_Trip/${trip.id}`)}
               >
-                {/* Trip Photo */}
+                {/* Trip Photo from Google Places API */}
                 <img
-                  src={details.tripPhotoURL || "/view.jpg"}
+                  src={trip.googleImageUrl || "/view.jpg"}
                   alt={details.location || "Trip"}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
