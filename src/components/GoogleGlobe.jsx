@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import useGoogleMaps from '../hooks/useGoogleMaps';
 
 const GoogleGlobe = () => {
+  // Refs for map and layers
   const mapRef = useRef(null);
   const googleMapRef = useRef(null);
   const trafficLayerRef = useRef(null);
@@ -11,22 +12,27 @@ const GoogleGlobe = () => {
   const directionsRendererRef = useRef(null);
   const directionsServiceRef = useRef(null);
 
-  // Sidebar state
+  // Refs for storing markers from place searches and for Autocomplete inputs
+  const searchMarkersRef = useRef([]);
+  const originInputRef = useRef(null);
+  const destinationInputRef = useRef(null);
+
+  // Sidebar and controls state
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  // Layers and directions state
   const [showTraffic, setShowTraffic] = useState(false);
   const [showTransit, setShowTransit] = useState(false);
   const [showBicycling, setShowBicycling] = useState(false);
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
-  // Map view state (default to hybrid)
+  const [searchQuery, setSearchQuery] = useState('');
   const [mapType, setMapType] = useState('hybrid');
 
-  // Get the API key from Vite environment variables
+  // Get the API key from your environment variables.
   const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-  const googleMapsLoaded = useGoogleMaps(apiKey, []);
+  // IMPORTANT: load the "places" library for Places API functionality.
+  const googleMapsLoaded = useGoogleMaps(apiKey, ['places']);
 
-  // Marker data for travel destinations
+  // Marker data for some travel destinations (for demonstration)
   const markersData = [
     {
       id: 1,
@@ -39,7 +45,7 @@ const GoogleGlobe = () => {
       id: 2,
       name: 'New York',
       lat: 40.7128,
-      lng: -74.0060,
+      lng: -74.006,
       description: 'The Big Apple is buzzing with energy and endless attractions.',
     },
     {
@@ -87,7 +93,7 @@ const GoogleGlobe = () => {
     { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
   ];
 
-  // Initialize the map, markers, layers, and directions once the API is loaded
+  // Initialize the map, markers, layers, directions, etc.
   useEffect(() => {
     if (!googleMapsLoaded) {
       console.log('Google Maps API not loaded yet.');
@@ -97,7 +103,7 @@ const GoogleGlobe = () => {
     const mapOptions = {
       center: { lat: 20, lng: 0 },
       zoom: 2,
-      mapTypeId: mapType, // Use the current map type state
+      mapTypeId: mapType, // use current map type state
       tilt: 45,
       heading: 0,
       styles: mapStyle,
@@ -108,13 +114,13 @@ const GoogleGlobe = () => {
       zoomControl: true,
     };
 
-    // Initialize the map
+    // Create the map
     googleMapRef.current = new window.google.maps.Map(mapRef.current, mapOptions);
     googleMapRef.current.addListener('idle', () => {
       googleMapRef.current.setTilt(45);
     });
 
-    // Add markers and info windows
+    // Add preset markers with info windows
     markersData.forEach((markerData) => {
       const marker = new window.google.maps.Marker({
         position: { lat: markerData.lat, lng: markerData.lng },
@@ -136,7 +142,7 @@ const GoogleGlobe = () => {
       });
     });
 
-    // Initialize Directions Service and Renderer for directions
+    // Initialize Directions Service and Renderer
     directionsServiceRef.current = new window.google.maps.DirectionsService();
     directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
       suppressMarkers: false,
@@ -149,6 +155,32 @@ const GoogleGlobe = () => {
     transitLayerRef.current = new window.google.maps.TransitLayer();
     bicyclingLayerRef.current = new window.google.maps.BicyclingLayer();
   }, [googleMapsLoaded, mapType]);
+
+  // Attach Autocomplete to directions inputs once the API is loaded
+  useEffect(() => {
+    if (!googleMapsLoaded) return;
+    if (window.google && window.google.maps.places) {
+      const originAutocomplete = new window.google.maps.places.Autocomplete(originInputRef.current);
+      originAutocomplete.addListener('place_changed', () => {
+        const place = originAutocomplete.getPlace();
+        if (place.formatted_address) {
+          setOrigin(place.formatted_address);
+        } else {
+          setOrigin(originInputRef.current.value);
+        }
+      });
+
+      const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInputRef.current);
+      destinationAutocomplete.addListener('place_changed', () => {
+        const place = destinationAutocomplete.getPlace();
+        if (place.formatted_address) {
+          setDestination(place.formatted_address);
+        } else {
+          setDestination(destinationInputRef.current.value);
+        }
+      });
+    }
+  }, [googleMapsLoaded]);
 
   // Update Traffic layer
   useEffect(() => {
@@ -186,6 +218,48 @@ const GoogleGlobe = () => {
         }
       }
     );
+  };
+
+  // Handle a separate Place text search
+  const handlePlaceSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim() || !googleMapRef.current) return;
+
+    // Clear any previous search markers
+    searchMarkersRef.current.forEach((marker) => marker.setMap(null));
+    searchMarkersRef.current = [];
+
+    const service = new window.google.maps.places.PlacesService(googleMapRef.current);
+    const request = {
+      query: searchQuery,
+      location: googleMapRef.current.getCenter(),
+      radius: 50000, // Search within 50km radius (adjust as needed)
+    };
+
+    service.textSearch(request, (results, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+        // Center the map on the first result
+        googleMapRef.current.setCenter(results[0].geometry.location);
+        results.forEach((place) => {
+          if (place.geometry && place.geometry.location) {
+            const marker = new window.google.maps.Marker({
+              position: place.geometry.location,
+              map: googleMapRef.current,
+              title: place.name,
+            });
+            searchMarkersRef.current.push(marker);
+            marker.addListener('click', () => {
+              const infoWindow = new window.google.maps.InfoWindow({
+                content: `<div><h3>${place.name}</h3><p>${place.formatted_address}</p></div>`,
+              });
+              infoWindow.open(googleMapRef.current, marker);
+            });
+          }
+        });
+      } else {
+        alert('Place search failed: ' + status);
+      }
+    });
   };
 
   // Geolocation: Center map on user's current location
@@ -226,7 +300,7 @@ const GoogleGlobe = () => {
 
   if (!googleMapsLoaded) return <div>Loading Map...</div>;
 
-  // Style objects
+  // Style objects (sidebar, buttons, etc.)
   const sidebarStyle = {
     position: 'absolute',
     top: '0',
@@ -326,13 +400,44 @@ const GoogleGlobe = () => {
             {showBicycling ? 'Hide Bicycling' : 'Show Bicycling'}
           </button>
         </div>
-        <div>
+
+        {/* Directions Form with Autocomplete Inputs */}
+        <div style={{ marginBottom: '15px' }}>
           <form onSubmit={handleGetDirections}>
-            <input type="text" placeholder="Origin" value={origin} onChange={(e) => setOrigin(e.target.value)} style={inputStyle} />
-            <input type="text" placeholder="Destination" value={destination} onChange={(e) => setDestination(e.target.value)} style={inputStyle} />
+            <input
+              type="text"
+              placeholder="Origin"
+              ref={originInputRef}
+              value={origin}
+              onChange={(e) => setOrigin(e.target.value)}
+              style={inputStyle}
+            />
+            <input
+              type="text"
+              placeholder="Destination"
+              ref={destinationInputRef}
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              style={inputStyle}
+            />
             <button type="submit" style={submitButtonStyle}>Get Directions</button>
           </form>
         </div>
+
+        {/* Places Text Search Form */}
+        <div style={{ marginBottom: '15px' }}>
+          <form onSubmit={handlePlaceSearch}>
+            <input
+              type="text"
+              placeholder="Search Places"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={inputStyle}
+            />
+            <button type="submit" style={submitButtonStyle}>Search Places</button>
+          </form>
+        </div>
+
         {/* Map Views Section */}
         <div style={mapViewsSectionStyle}>
           <h3 style={mapViewsHeaderStyle}>Map Views</h3>
