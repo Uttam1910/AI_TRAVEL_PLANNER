@@ -6,8 +6,7 @@ import ViewTrip from "./view_trip/[tripID]/index"; // Import the new ViewTrip pa
 import "./App.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Trips from "./my-trips/index";
-// import TripDetail from "./my-trips/TripDetail"; 
-// import { AuthProvider } from "./context/AuthContext";
+import ExploreGlobe from "./components/ExploreGlobe";
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,6 +29,7 @@ function App() {
           <Route path="/trips" element={<Trips />} />
           {/* Route to display a specific trip's details */}
           {/* <Route path="/trips/:tripId" element={<TripDetail />} /> */}
+          <Route path="/explore" element={<ExploreGlobe />} />
         </Routes>
         {/* </AuthProvider> */}
       </GoogleOAuthProvider>
