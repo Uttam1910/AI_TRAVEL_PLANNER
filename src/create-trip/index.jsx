@@ -18,8 +18,8 @@ import { ClipLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import axios from "axios";
-
 Modal.setAppElement("#root");
+
 
 const CustomSingleValue = ({ data }) => (
   <div className="flex items-center">
