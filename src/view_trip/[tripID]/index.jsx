@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getTripDetails } from "../../service/firebaseConfig";
 import { ClipLoader } from "react-spinners";
-import { GetPlaceDetails } from "../../service/Globalapi"; // Import the Google Places API function
+import { GetPlaceDetails } from "../../service/Globalapi";
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -20,6 +20,13 @@ import {
   FaLinkedin,
   FaEnvelope,
   FaPhone,
+  FaUtensils,
+  FaBus,
+  FaHotel,
+  FaAccessibleIcon,
+  FaWallet,
+  FaCar,
+  FaInfoCircle,
 } from "react-icons/fa";
 
 const ViewTrip = () => {
@@ -29,11 +36,16 @@ const ViewTrip = () => {
     tripDetails: {},
     hotelOptions: [],
     itinerary: {},
+    transportationOptions: [],
+    diningSuggestions: [],
+    budgetEstimate: {},
+    additionalTips: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [detailsFetched, setDetailsFetched] = useState(false);
 
-  // Fetch trip details
+  // Fetch trip details from backend
   useEffect(() => {
     const fetchTripDetails = async () => {
       try {
@@ -41,11 +53,9 @@ const ViewTrip = () => {
         if (!details) {
           throw new Error("Trip not found");
         }
-
-        // Fetch destination photo using Google Places API
-        const destination = details.tripDetails.location;
-        if (destination) {
-          const response = await GetPlaceDetails({ textQuery: destination });
+        // If destination photo is not provided, fetch it using Google Places API
+        if (!details.tripDetails.tripPhotoURL && details.tripDetails.location) {
+          const response = await GetPlaceDetails({ textQuery: details.tripDetails.location });
           if (response?.data?.places?.length > 0) {
             const placeDetails = response.data.places[0];
             if (placeDetails.photos?.length > 0) {
@@ -55,7 +65,6 @@ const ViewTrip = () => {
             }
           }
         }
-
         setTripDetails(details);
       } catch (err) {
         setError(err.message);
@@ -63,107 +72,85 @@ const ViewTrip = () => {
         setIsLoading(false);
       }
     };
-
     fetchTripDetails();
   }, [tripId]);
 
-  const [detailsFetched, setDetailsFetched] = useState(false);
-
+  // Fetch photos for hotels and itinerary activities if missing
   useEffect(() => {
-    const fetchPlaceDetails = async () => {
+    const fetchPlaceDetailsForFields = async () => {
       try {
-        console.log("Checking API Key:", import.meta.env.VITE_GOOGLE_API_KEY);
-
         if (!import.meta.env.VITE_GOOGLE_API_KEY) {
-          console.error("❌ API key is missing! Check your .env file.");
+          console.error("API key is missing");
           return;
         }
-
+        // Update hotel options with photos
         const updatedHotels = await Promise.all(
           tripDetails.hotelOptions.map(async (hotel, index) => {
             await new Promise((resolve) => setTimeout(resolve, index * 1000));
-
             try {
-              console.log(`Fetching details for hotel: ${hotel.hotelName}`);
-              const response = await GetPlaceDetails({ textQuery: hotel.hotelName });
-
-              if (!response || !response.data?.places?.length) {
-                console.warn(`⚠️ No place details found for: ${hotel.hotelName}`);
-                return hotel;
+              if (!hotel.hotelImageURL) {
+                const response = await GetPlaceDetails({ textQuery: hotel.name });
+                if (response?.data?.places?.length > 0) {
+                  const placeDetails = response.data.places[0];
+                  let photoUrl = "/default-hotel.jpg";
+                  if (placeDetails.photos?.length > 0) {
+                    const photoReference = placeDetails.photos[0].name;
+                    photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
+                  }
+                  return { ...hotel, hotelImageURL: photoUrl, googlePlaceDetails: placeDetails };
+                }
               }
-
-              const placeDetails = response.data.places[0];
-              let photoUrl = "/view.jpg";
-
-              if (placeDetails.photos?.length) {
-                const photoReference = placeDetails.photos[0].name;
-                photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
-              }
-
-              return {
-                ...hotel,
-                googlePlaceDetails: placeDetails,
-                hotelImageURL: photoUrl,
-              };
+              return hotel;
             } catch (err) {
-              console.error(`❌ Error fetching details for ${hotel.hotelName}:`, err);
+              console.error(`Error fetching photo for hotel ${hotel.name}:`, err);
               return hotel;
             }
           })
         );
-
+        // Update itinerary activities with photos
         const updatedItinerary = { ...tripDetails.itinerary };
         for (const day in updatedItinerary) {
           updatedItinerary[day].plan = await Promise.all(
-            updatedItinerary[day].plan.map(async (activity, index) => {
+            (updatedItinerary[day].plan || []).map(async (activity, index) => {
               await new Promise((resolve) => setTimeout(resolve, index * 1000));
-
               try {
-                console.log(`Fetching details for activity: ${activity.placeName}`);
-                const response = await GetPlaceDetails({ textQuery: activity.placeName });
-
-                if (!response || !response.data?.places?.length) {
-                  console.warn(`⚠️ No place details found for: ${activity.placeName}`);
-                  return activity;
+                if (!activity.imageUrl) {
+                  const response = await GetPlaceDetails({ textQuery: activity.activityName });
+                  if (response?.data?.places?.length > 0) {
+                    const placeDetails = response.data.places[0];
+                    let photoUrl = "/default-activity.jpg";
+                    if (placeDetails.photos?.length > 0) {
+                      const photoReference = placeDetails.photos[0].name;
+                      photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
+                    }
+                    return { ...activity, imageUrl: photoUrl, googlePlaceDetails: placeDetails };
+                  }
                 }
-
-                const placeDetails = response.data.places[0];
-                let photoUrl = "https://via.placeholder.com/300";
-
-                if (placeDetails.photos?.length) {
-                  const photoReference = placeDetails.photos[0].name;
-                  photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
-                }
-
-                return {
-                  ...activity,
-                  googlePlaceDetails: placeDetails,
-                  imageUrl: photoUrl,
-                };
+                return activity;
               } catch (err) {
-                console.error(`❌ Error fetching details for ${activity.placeName}:`, err);
+                console.error(`Error fetching photo for activity ${activity.activityName}:`, err);
                 return activity;
               }
             })
           );
         }
-
-        setTripDetails((prev) => ({
+        setTripDetails(prev => ({
           ...prev,
           hotelOptions: updatedHotels,
-          itinerary: updatedItinerary,
+          itinerary: updatedItinerary
         }));
-
-        setDetailsFetched(true); // ✅ Prevent infinite re-fetching
+        setDetailsFetched(true);
       } catch (err) {
-        console.error("❌ Error in fetchPlaceDetails function:", err);
+        console.error("Error in fetching place details for hotels/itinerary:", err);
       }
     };
-
-    if (!detailsFetched && (tripDetails.hotelOptions.length > 0 || Object.keys(tripDetails.itinerary).length > 0)) {
-      fetchPlaceDetails();
+    if (
+      !detailsFetched &&
+      (tripDetails.hotelOptions.length > 0 || Object.keys(tripDetails.itinerary).length > 0)
+    ) {
+      fetchPlaceDetailsForFields();
     }
-  }, [tripDetails.hotelOptions, tripDetails.itinerary, detailsFetched]); // ✅ Added detailsFetched dependency
+  }, [tripDetails.hotelOptions, tripDetails.itinerary, detailsFetched]);
 
   if (isLoading) {
     return (
@@ -188,227 +175,343 @@ const ViewTrip = () => {
     );
   }
 
+  // Sort itinerary days (e.g. day1, day2, etc.)
+  const sortedItineraryDays = Object.entries(tripDetails.itinerary).sort(
+    ([dayA], [dayB]) => {
+      const numA = parseInt(dayA.replace(/\D/g, ""), 10);
+      const numB = parseInt(dayB.replace(/\D/g, ""), 10);
+      return numA - numB;
+    }
+  );
+
+  // Helper function to generate a map link for hotels
+  const getHotelMapLink = (hotel) => {
+    const query = encodeURIComponent(`${hotel.name}, ${hotel.address}`);
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
+  };
+
+  // Helper function to generate a map link for itinerary activities
+  const getActivityMapLink = (activity) => {
+    // Combine activity name and trip destination for a better search query
+    const query = encodeURIComponent(`${activity.activityName}, ${tripDetails.tripDetails.location}`);
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
+  };
+
+  const renderTransportationOptions = () => (
+    <div className="mt-12">
+      <h3 className="text-2xl font-semibold text-blue-700 mb-6 flex items-center">
+        <FaCar className="mr-2" /> Transportation Options
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {tripDetails.transportationOptions?.map((option, index) => (
+          <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex items-center mb-4">
+              <FaBus className="text-blue-500 mr-2 text-xl" />
+              <h4 className="text-xl font-semibold">{option.mode}</h4>
+            </div>
+            <p className="text-gray-600 mb-2">{option.cost}</p>
+            <p className="text-gray-600 mb-2">{option.duration}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderDiningSuggestions = () => (
+    <div className="mt-12">
+      <h3 className="text-2xl font-semibold text-blue-700 mb-6 flex items-center">
+        <FaUtensils className="mr-2" /> Dining Suggestions
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {tripDetails.diningSuggestions?.map((restaurant, index) => (
+          <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+            <h4 className="text-xl font-semibold mb-2">{restaurant.name}</h4>
+            <p className="text-gray-600 mb-2">{restaurant.description}</p>
+            <div className="flex items-center text-gray-600">
+              <FaDollarSign className="mr-1" />
+              <span className="mr-4">{restaurant.estimatedCost}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderBudgetEstimate = () => (
+    <div className="mt-12">
+      <h3 className="text-2xl font-semibold text-blue-700 mb-6 flex items-center">
+        <FaWallet className="mr-2" /> Budget Estimate
+      </h3>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex justify-between">
+            <span>Accommodation:</span>
+            <span>{tripDetails.budgetEstimate?.accommodation}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Transportation:</span>
+            <span>{tripDetails.budgetEstimate?.transportation}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Food:</span>
+            <span>{tripDetails.budgetEstimate?.food}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Activities:</span>
+            <span>{tripDetails.budgetEstimate?.activities}</span>
+          </div>
+          <div className="flex justify-between border-t-2 pt-2 font-semibold">
+            <span>Total Estimate:</span>
+            <span>{tripDetails.budgetEstimate?.total}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAdditionalTips = () => (
+    <div className="mt-12">
+      <h3 className="text-2xl font-semibold text-blue-700 mb-6 flex items-center">
+        <FaInfoCircle className="mr-2" /> Travel Tips & Recommendations
+      </h3>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <ul className="list-disc pl-6 space-y-3">
+          {tripDetails.additionalTips?.map((tip, index) => (
+            <li key={index} className="text-gray-700">{tip}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="bg-white py-16 px-6 flex-grow">
-        <div className="max-w-4xl mx-auto">
-          {/* Trip Photo */}
-          <div className="mb-8">
-            <img
-              src={tripDetails.tripDetails.tripPhotoURL || "/view.jpg"}
-              alt="Trip"
-              className="w-full h-96 object-cover rounded-lg shadow-lg"
-            />
+      {/* Hero Section */}
+      <section className="relative">
+        <img
+          src={tripDetails.tripDetails.tripPhotoURL || "/default-destination.jpg"}
+          alt="Destination"
+          className="w-full h-96 object-cover"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center">
+          <h1 className="text-4xl font-bold text-white">
+            {tripDetails.tripDetails.location || "Destination"}
+          </h1>
+          <p className="text-lg text-white mt-2">
+            {tripDetails.tripDetails.startDate ? `Travel Date: ${tripDetails.tripDetails.startDate}` : ""}
+          </p>
+        </div>
+      </section>
+
+      <section className="bg-gray-50 py-12 px-6 flex-grow">
+        <div className="max-w-6xl mx-auto">
+          {/* Trip Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {/* Summary cards */}
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaMapMarkerAlt className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Destination</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.location || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaCalendarAlt className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Travel Date</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.startDate || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              {tripDetails.tripDetails.tripType === "Adventure" && <FaMountain className="text-blue-500 mr-4 text-2xl" />}
+              {tripDetails.tripDetails.tripType === "Beach" && <FaUmbrellaBeach className="text-blue-500 mr-4 text-2xl" />}
+              {tripDetails.tripDetails.tripType === "Cultural" && <FaLandmark className="text-blue-500 mr-4 text-2xl" />}
+              {tripDetails.tripDetails.tripType === "Romantic" && <FaHeart className="text-blue-500 mr-4 text-2xl" />}
+              <div>
+                <h4 className="text-xl font-semibold">Trip Type</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.tripType || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaCalendarAlt className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Duration</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.duration || "N/A"} days</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaDollarSign className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Budget</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.budget || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaUserFriends className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Companion</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.travelCompanion || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaMountain className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Interests</h4>
+                <p className="text-gray-700">
+                  {Array.isArray(tripDetails.tripDetails.interests)
+                    ? tripDetails.tripDetails.interests.join(", ")
+                    : tripDetails.tripDetails.interests || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaUmbrellaBeach className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Activities</h4>
+                <p className="text-gray-700">
+                  {Array.isArray(tripDetails.tripDetails.activities)
+                    ? tripDetails.tripDetails.activities.join(", ")
+                    : tripDetails.tripDetails.activities || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaUtensils className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Dietary</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.dietaryPreferences || "None"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaBus className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Transport</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.transportation || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaHotel className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Accommodation</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.accommodationType || "N/A"}</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <FaAccessibleIcon className="text-blue-500 mr-4 text-2xl" />
+              <div>
+                <h4 className="text-xl font-semibold">Special Needs</h4>
+                <p className="text-gray-700">{tripDetails.tripDetails.specialRequirements || "None"}</p>
+              </div>
+            </div>
           </div>
 
-          {/* Trip Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Destination */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              <FaMapMarkerAlt className="text-blue-500 mr-2 text-xl" />
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Destination:</span>{" "}
-                {tripDetails.tripDetails.location || "N/A"}
-              </p>
-            </div>
-
-            {/* Travel Dates */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Travel Dates:</span>{" "}
-                {tripDetails.tripDetails.startDate || "N/A"}
-              </p>
-            </div>
-
-            {/* Trip Category */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              {tripDetails.tripDetails.tripType === "Adventure" && (
-                <FaMountain className="text-blue-500 mr-2 text-xl" />
-              )}
-              {tripDetails.tripDetails.tripType === "Beach" && (
-                <FaUmbrellaBeach className="text-blue-500 mr-2 text-xl" />
-              )}
-              {tripDetails.tripDetails.tripType === "Cultural" && (
-                <FaLandmark className="text-blue-500 mr-2 text-xl" />
-              )}
-              {tripDetails.tripDetails.tripType === "Romantic" && (
-                <FaHeart className="text-blue-500 mr-2 text-xl" />
-              )}
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Trip Type:</span>{" "}
-                {tripDetails.tripDetails.tripType || "N/A"}
-              </p>
-            </div>
-
-            {/* Trip Duration */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              <FaCalendarAlt className="text-blue-500 mr-2 text-xl" />
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Trip Duration:</span>{" "}
-                {tripDetails.tripDetails.duration || "N/A"}
-              </p>
-            </div>
-
-            {/* Budget */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              <FaDollarSign className="text-blue-500 mr-2 text-xl" />
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Budget:</span>{" "}
-                {tripDetails.tripDetails.budget || "N/A"}
-              </p>
-            </div>
-
-            {/* Travel Companion */}
-            <div className="flex items-center bg-white p-4 rounded-lg shadow-md">
-              <FaUserFriends className="text-blue-500 mr-2 text-xl" />
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold">Travel Companion:</span>{" "}
-                {tripDetails.tripDetails.travelers || "N/A"}
-              </p>
-            </div>
-          </div>
-
-          {/* Hotel Options */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-6">Hotel Options</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Hotel Options Section */}
+          <div className="mt-12">
+            <h3 className="text-3xl font-bold text-blue-700 mb-6">Hotel Options</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {tripDetails.hotelOptions && tripDetails.hotelOptions.length > 0 ? (
                 tripDetails.hotelOptions.map((hotel, index) => {
-                  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    hotel.hotelAddress
-                  )}`;
-
+                  const hotelMapLink = getHotelMapLink(hotel);
                   return (
-                    <div
-                      key={index}
-                      className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
-                    >
-                      {/* Hotel Image */}
+                    <div key={index} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
                       <img
-                        src={hotel.hotelImageURL}
-                        alt={hotel.hotelName}
+                        src={hotel.hotelImageURL || "/default-hotel.jpg"}
+                        alt={hotel.name}
                         className="w-full h-48 object-cover rounded-lg mb-4"
                       />
-
-                      {/* Hotel Name */}
-                      <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                        {hotel.hotelName}
-                      </h4>
-
-                      {/* Hotel Address */}
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <FaMapMarkerAlt className="text-blue-500 mr-2" />
-                        <p>{hotel.hotelAddress}</p>
-                      </div>
-
-                      {/* Hotel Price */}
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <FaDollarSign className="text-blue-500 mr-2" />
-                        <p>{hotel.price}</p>
-                      </div>
-
-                      {/* Hotel Rating */}
-                      <div className="flex items-center text-gray-600 mb-4">
-                        <FaStar className="text-blue-500 mr-2" />
-                        <p>Rating: {hotel.rating}</p>
-                      </div>
-
-                      {/* Map Link */}
+                      <h4 className="text-2xl font-semibold text-gray-800 mb-2">{hotel.name}</h4>
+                      <p className="text-gray-600 mb-2 flex items-center">
+                        <FaMapMarkerAlt className="mr-2" /> {hotel.address}
+                      </p>
+                      <p className="text-gray-600 mb-2 flex items-center">
+                        <FaDollarSign className="mr-2" /> {hotel.priceEstimate}
+                      </p>
+                      <p className="text-gray-600 mb-4 flex items-center">
+                        <FaStar className="mr-2 text-yellow-500" /> Rating: {hotel.rating}
+                      </p>
                       <a
-                        href={mapLink}
+                        href={hotelMapLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center mt-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
                       >
-                        <FaMap className="mr-2" />
-                        View on Map
+                        <FaMap className="mr-2" /> View on Map
                       </a>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-gray-600">No hotel options available.</p>
+                <p className="text-gray-600 text-lg">No hotel options available.</p>
               )}
             </div>
           </div>
 
-          {/* Itinerary */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-semibold text-blue-700 mb-4">Itinerary</h3>
-            {tripDetails.itinerary && Object.keys(tripDetails.itinerary).length > 0 ? (
-              Object.entries(tripDetails.itinerary)
-                .sort(([dayA], [dayB]) => {
-                  const dayNumberA = parseInt(dayA.replace("Day ", ""), 10);
-                  const dayNumberB = parseInt(dayB.replace("Day ", ""), 10);
-                  return dayNumberA - dayNumberB;
-                })
-                .map(([day, plan]) => (
-                  <div key={day} className="mb-6">
-                    <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                      {day}: {plan.theme}
-                    </h4>
-                    <div className="space-y-4">
-                      {plan.plan.map((activity, index) => (
-                        <div
-                          key={index}
-                          className="bg-white p-4 rounded-lg shadow-md flex flex-col md:flex-row"
-                        >
-                          {/* Image Section */}
+          {/* Itinerary Section */}
+          <div className="mt-12">
+            <h3 className="text-3xl font-bold text-blue-700 mb-6">Itinerary</h3>
+            {sortedItineraryDays.length > 0 ? (
+              sortedItineraryDays.map(([day, dayPlan]) => (
+                <div key={day} className="mb-8">
+                  <h4 className="text-2xl font-bold text-gray-800 mb-4">
+                    {day.toUpperCase()} - {dayPlan.title}
+                  </h4>
+                  <div className="space-y-6">
+                    {(dayPlan.plan || []).map((activity, index) => {
+                      const activityMapLink = getActivityMapLink(activity);
+                      return (
+                        <div key={index} className="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row">
                           <div className="md:w-1/3">
                             <img
-                              src={activity.imageUrl}
-                              alt={activity.placeName}
+                              src={activity.imageUrl || "/default-activity.jpg"}
+                              alt={activity.activityName}
                               className="w-full h-48 object-cover rounded-lg"
                             />
                           </div>
-                          {/* Details Section */}
-                          <div className="md:w-2/3 md:pl-6 mt-4 md:mt-0">
-                            <h5 className="text-lg font-semibold">{activity.placeName}</h5>
-                            <p className="text-gray-600">{activity.placeDetails}</p>
-                            <p className="text-gray-600">
-                              Ticket Price: {activity.ticketPricing}
-                            </p>
-                            <p className="text-gray-600">Rating: {activity.rating}</p>
-                            <p className="text-gray-600">
-                              Time: {activity.time || "Not specified"}
-                            </p>
+                          <div className="md:w-2/3 md:pl-8 mt-4 md:mt-0">
+                            <h5 className="text-2xl font-semibold mb-2">{activity.activityName}</h5>
+                            <p className="text-gray-700 mb-2">{activity.description}</p>
+                            <div className="flex flex-wrap gap-4 text-gray-600 mb-4">
+                              <span>Time: {activity.recommendedTimeAllocation}</span>
+                              <span>Cost: {activity.cost}</span>
+                              <span>Duration: {activity.duration}</span>
+                            </div>
                             <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                activity.placeName
-                              )}`}
+                              href={activityMapLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:underline mt-2 inline-block"
+                              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
                             >
-                              View on Map
+                              <FaMap className="mr-2" /> View on Map
                             </a>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                ))
+                </div>
+              ))
             ) : (
-              <p className="text-gray-600">No itinerary available.</p>
+              <p className="text-gray-600 text-lg">No itinerary available.</p>
             )}
           </div>
 
-          {/* Back Button */}
-          <button
-            onClick={() => navigate("/")}
-            className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Go Back
-          </button>
+          {/* Additional Sections */}
+          {tripDetails.transportationOptions?.length > 0 && renderTransportationOptions()}
+          {tripDetails.diningSuggestions?.length > 0 && renderDiningSuggestions()}
+          {tripDetails.budgetEstimate && Object.keys(tripDetails.budgetEstimate).length > 0 && renderBudgetEstimate()}
+          {tripDetails.additionalTips?.length > 0 && renderAdditionalTips()}
+
+          <div className="mt-12 text-center">
+            <button onClick={() => navigate("/")} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all">
+              Go Back
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-12 mt-16 shadow-lg">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-            {/* About Section */}
             <div>
               <h4 className="text-2xl font-bold mb-4 text-yellow-300">About Us</h4>
               <p className="text-gray-200">
@@ -416,8 +519,6 @@ const ViewTrip = () => {
                 Explore the world with us and create unforgettable memories.
               </p>
             </div>
-
-            {/* Quick Links */}
             <div>
               <h4 className="text-2xl font-bold mb-4 text-yellow-300">Quick Links</h4>
               <ul className="text-gray-200 space-y-2">
@@ -435,26 +536,18 @@ const ViewTrip = () => {
                 </li>
               </ul>
             </div>
-
-            {/* Newsletter Subscription */}
             <div>
               <h4 className="text-2xl font-bold mb-4 text-yellow-300">Stay Updated</h4>
               <p className="text-gray-200 mb-4">
                 Get travel tips, destination ideas, and exclusive offers.
               </p>
               <div className="flex">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="p-2 w-full rounded-l-lg bg-gray-200 text-gray-800 border border-gray-400 focus:border-yellow-300 focus:ring-2 focus:ring-yellow-300"
-                />
+                <input type="email" placeholder="Enter your email" className="p-2 w-full rounded-l-lg bg-gray-200 text-gray-800 border border-gray-400 focus:border-yellow-300 focus:ring-2 focus:ring-yellow-300" />
                 <button className="bg-black text-white px-4 py-2 rounded-r-lg hover:bg-gray-800 transition">
                   Subscribe
                 </button>
               </div>
             </div>
-
-            {/* Social Media & Contact Info */}
             <div>
               <h4 className="text-2xl font-bold mb-4 text-yellow-300">Connect With Us</h4>
               <div className="flex space-x-4 mb-4">
@@ -479,8 +572,6 @@ const ViewTrip = () => {
               </p>
             </div>
           </div>
-
-          {/* Copyright */}
           <div className="border-t border-gray-300 mt-10 pt-6 text-center text-gray-200">
             <p>&copy; {new Date().getFullYear()} Travel Company. All rights reserved.</p>
           </div>
