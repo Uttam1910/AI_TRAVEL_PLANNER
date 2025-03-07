@@ -27,6 +27,10 @@ import {
   FaWallet,
   FaCar,
   FaInfoCircle,
+  FaBriefcase,
+  FaLeaf,
+  FaTree,
+  FaMusic,
 } from "react-icons/fa";
 
 const ViewTrip = () => {
@@ -192,10 +196,28 @@ const ViewTrip = () => {
 
   // Helper function to generate a map link for itinerary activities
   const getActivityMapLink = (activity) => {
-    // Combine activity name and trip destination for a better search query
     const query = encodeURIComponent(`${activity.activityName}, ${tripDetails.tripDetails.location}`);
     return `https://www.google.com/maps/search/?api=1&query=${query}`;
   };
+
+  // Mapping for trip type icons based on the updated options
+  const tripTypeIcons = {
+    "Adventure": <FaMountain className="text-blue-500 mr-2 text-2xl" />,
+    "Beach": <FaUmbrellaBeach className="text-blue-500 mr-2 text-2xl" />,
+    "Cultural": <FaLandmark className="text-blue-500 mr-2 text-2xl" />,
+    "Business": <FaBriefcase className="text-blue-500 mr-2 text-2xl" />,
+    "Wellness": <FaLeaf className="text-blue-500 mr-2 text-2xl" />,
+    "Road Trip": <FaBus className="text-blue-500 mr-2 text-2xl" />,
+    "Eco-Tourism": <FaTree className="text-blue-500 mr-2 text-2xl" />,
+    "Culinary": <FaUtensils className="text-blue-500 mr-2 text-2xl" />,
+    "Festival & Events": <FaMusic className="text-blue-500 mr-2 text-2xl" />,
+    "Nature Retreat": <FaTree className="text-blue-500 mr-2 text-2xl" />,
+  };
+
+  // Parse tripType string (from the backend) into an array
+  const tripTypes = tripDetails.tripDetails.tripType
+    ? tripDetails.tripDetails.tripType.split(",").map(t => t.trim())
+    : [];
 
   const renderTransportationOptions = () => (
     <div className="mt-12">
@@ -323,13 +345,16 @@ const ViewTrip = () => {
               </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-              {tripDetails.tripDetails.tripType === "Adventure" && <FaMountain className="text-blue-500 mr-4 text-2xl" />}
-              {tripDetails.tripDetails.tripType === "Beach" && <FaUmbrellaBeach className="text-blue-500 mr-4 text-2xl" />}
-              {tripDetails.tripDetails.tripType === "Cultural" && <FaLandmark className="text-blue-500 mr-4 text-2xl" />}
-              {tripDetails.tripDetails.tripType === "Romantic" && <FaHeart className="text-blue-500 mr-4 text-2xl" />}
+              <div className="flex">
+                {tripTypes.map((type, index) => (
+                  <React.Fragment key={index}>
+                    {tripTypeIcons[type] || null}
+                  </React.Fragment>
+                ))}
+              </div>
               <div>
                 <h4 className="text-xl font-semibold">Trip Type</h4>
-                <p className="text-gray-700">{tripDetails.tripDetails.tripType || "N/A"}</p>
+                <p className="text-gray-700">{tripTypes.length > 0 ? tripTypes.join(", ") : "N/A"}</p>
               </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md flex items-center">

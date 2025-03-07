@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import {
+  FaUserFriends,    // For "A Couple"
+  FaUsers,          // For "Family"
+  FaHandshake,      // For "Friends"
+  FaMoneyBillWave,  // For "Cheap"
+  FaDollarSign,     // For "Moderate"
+  FaGem,            // For "Luxury
+  FaWallet, // replaced FaDollarSign with FaWallet for budget
   FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaUserFriends,
-  FaDollarSign,
+  FaCalendarAlt,  
   FaMountain,
   FaUmbrellaBeach,
   FaLandmark,
@@ -13,6 +18,10 @@ import {
   FaBus,
   FaHotel,
   FaAccessibleIcon,
+  FaBriefcase,
+  FaUser,
+  FaLeaf,
+  FaTree,
 } from "react-icons/fa";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -22,6 +31,7 @@ import { saveTripDetails } from "../service/firebaseConfig";
 import { ClipLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { FaMusic } from "react-icons/fa";
 Modal.setAppElement("#root");
 
 const CustomSingleValue = ({ data }) => (
@@ -37,7 +47,7 @@ const CreateTrip = () => {
     travelDates: "",
     travelers: "",
     budget: "",
-    tripCategory: "",
+    tripCategory: [], // Changed to an array for multi-select
     tripDuration: "",
     travelCompanion: "",
     interests: [],
@@ -55,25 +65,34 @@ const CreateTrip = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Updated trip category options with additional choices and corresponding icons
   const tripCategoryOptions = [
     { label: "Adventure", value: "Adventure", icon: <FaMountain /> },
     { label: "Beach", value: "Beach", icon: <FaUmbrellaBeach /> },
     { label: "Cultural", value: "Cultural", icon: <FaLandmark /> },
-    { label: "Romantic", value: "Romantic", icon: <FaHeart /> },
+    { label: "Business", value: "Business", icon: <FaBriefcase /> },
+    { label: "Wellness", value: "Wellness", icon: <FaLeaf /> },
+    { label: "Road Trip", value: "Road Trip", icon: <FaBus /> },
+    { label: "Eco-Tourism", value: "Eco-Tourism", icon: <FaTree /> },
+    { label: "Culinary", value: "Culinary", icon: <FaUtensils /> },
+    { label: "Festival & Events", value: "Festival & Events", icon: <FaMusic /> },
+    { label: "Nature Retreat", value: "Nature Retreat", icon: <FaTree /> },
   ];
 
   const budgetOptions = [
-    { label: "Cheap", value: "Cheap", icon: <FaDollarSign /> },
+    { label: "Cheap", value: "Cheap", icon: <FaMoneyBillWave /> },
     { label: "Moderate", value: "Moderate", icon: <FaDollarSign /> },
-    { label: "Luxury", value: "Luxury", icon: <FaDollarSign /> },
+    { label: "Luxury", value: "Luxury", icon: <FaGem /> },
   ];
+  
 
   const travelCompanionOptions = [
-    { label: "Just Me", value: "Just Me", icon: <FaUserFriends /> },
+    { label: "Just Me", value: "Just Me", icon: <FaUser /> },
     { label: "A Couple", value: "A Couple", icon: <FaUserFriends /> },
-    { label: "Family", value: "Family", icon: <FaUserFriends /> },
-    { label: "Friends", value: "Friends", icon: <FaUserFriends /> },
+    { label: "Family", value: "Family", icon: <FaUsers /> },
+    { label: "Friends", value: "Friends", icon: <FaHandshake /> },
   ];
+  
 
   // New options for additional fields
   const interestOptions = [
@@ -123,11 +142,11 @@ const CreateTrip = () => {
     }));
   };
 
-  // Updated handler for multi-select fields
+  // Updated handler for multi-select fields (used for interests, activities, and now tripCategory)
   const handleMultiSelectChange = (selectedOptions, actionMeta) => {
     setFormData({
       ...formData,
-      [actionMeta.name]: selectedOptions.map(option => option.value),
+      [actionMeta.name]: selectedOptions ? selectedOptions.map(option => option.value) : [],
     });
   };
 
@@ -138,14 +157,14 @@ const CreateTrip = () => {
     }));
   };
 
-// Updated generateTripPlan with new fields
+  // Updated generateTripPlan with new fields
   const generateTripPlan = async () => {
     setIsLoading(true);
     const url = "http://localhost:5000/plans";
     const requestBody = {
       location: formData.destination,
       date: formData.travelDates,
-      tripType: formData.tripCategory,
+      tripType: formData.tripCategory, // This will now be an array of trip types
       duration: formData.tripDuration,
       budget: formData.budget,
       travelCompanion: formData.travelCompanion,
@@ -214,8 +233,8 @@ const CreateTrip = () => {
       setIsModalOpen(true);
       return;
     }
-    if (!formData.tripCategory) {
-      alert("Please select a trip type.");
+    if (!formData.tripCategory || formData.tripCategory.length === 0) {
+      alert("Please select at least one trip type.");
       return;
     }
     generateTripPlan();
@@ -321,15 +340,17 @@ const CreateTrip = () => {
                 What type of trip are you planning?
               </label>
               <Select
+                isMulti
                 name="tripCategory"
                 options={tripCategoryOptions}
-                value={tripCategoryOptions.find(
-                  (option) => option.value === formData.tripCategory
+                value={tripCategoryOptions.filter(option =>
+                  formData.tripCategory.includes(option.value)
                 )}
-                onChange={handleSelectChange}
-                components={{ SingleValue: CustomSingleValue }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-                placeholder="Select a trip type"
+                onChange={handleMultiSelectChange}
+                components={{ MultiValue: CustomSingleValue }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+                placeholder="Select one or more trip types"
                 required
               />
             </div>
@@ -356,154 +377,157 @@ const CreateTrip = () => {
             </div>
 
             {/* Budget */}
-            <div>
-              <label
-                htmlFor="budget"
-                className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
-              >
-                <FaDollarSign className="mr-2 text-blue-500" />
-                What is your budget?
-              </label>
-              <Select
-                name="budget"
-                options={budgetOptions}
-                value={budgetOptions.find(
-                  (option) => option.value === formData.budget
-                )}
-                onChange={handleSelectChange}
-                components={{ SingleValue: CustomSingleValue }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-                placeholder="Select your budget"
-                required
-              />
-            </div>
+<div>
+  <label
+    htmlFor="budget"
+    className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+  >
+    <FaWallet className="mr-2 text-blue-500" />
+    What is your budget?
+  </label>
+  <Select
+    name="budget"
+    options={budgetOptions}
+    value={budgetOptions.find(
+      (option) => option.value === formData.budget
+    )}
+    onChange={handleSelectChange}
+    components={{ SingleValue: CustomSingleValue }}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+      focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+    placeholder="Select your budget"
+    required
+  />
+</div>
 
-            {/* Travel Companion */}
-            <div>
-              <label
-                htmlFor="travelCompanion"
-                className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
-              >
-                <FaUserFriends className="mr-2 text-blue-500" />
-                Who do you plan on traveling with?
-              </label>
-              <Select
-                name="travelCompanion"
-                options={travelCompanionOptions}
-                value={travelCompanionOptions.find(
-                  (option) => option.value === formData.travelCompanion
-                )}
-                onChange={handleSelectChange}
-                components={{ SingleValue: CustomSingleValue }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-                placeholder="Select your travel companion"
-                required
-              />
-            </div>
+
+{/* Travel Companion */}
+<div>
+  <label
+    htmlFor="travelCompanion"
+    className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+  >
+    <FaUsers className="mr-2 text-blue-500" />
+    Who do you plan on traveling with?
+  </label>
+  <Select
+    name="travelCompanion"
+    options={travelCompanionOptions}
+    value={travelCompanionOptions.find(
+      (option) => option.value === formData.travelCompanion
+    )}
+    onChange={handleSelectChange}
+    components={{ SingleValue: CustomSingleValue }}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+    placeholder="Select your travel companion"
+    required
+  />
+</div>
+
 
             {/* Additional Preferences Section */}
             <div className="border-t pt-6">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">Additional Preferences</h3>
               
-{/* Interests */}
-<div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaMountain className="mr-2 text-blue-500" />
-                What are your main interests?
-              </label>
-              <CreatableSelect
-                isMulti
-                name="interests"
-                options={interestOptions}
-                onChange={handleMultiSelectChange}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                placeholder="Select or create interests..."
-              />
-            </div>
+              {/* Interests */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaMountain className="mr-2 text-blue-500" />
+                  What are your main interests?
+                </label>
+                <CreatableSelect
+                  isMulti
+                  name="interests"
+                  options={interestOptions}
+                  onChange={handleMultiSelectChange}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  placeholder="Select or create interests..."
+                />
+              </div>
 
-            {/* Preferred Activities */}
-            <div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaUmbrellaBeach className="mr-2 text-blue-500" />
-                Preferred Activities
-              </label>
-              <Select
-                isMulti
-                name="activities"
-                options={activityOptions}
-                onChange={handleMultiSelectChange}
-                placeholder="Select preferred activities..."
-              />
-            </div>
+              {/* Preferred Activities */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaUmbrellaBeach className="mr-2 text-blue-500" />
+                  Preferred Activities
+                </label>
+                <Select
+                  isMulti
+                  name="activities"
+                  options={activityOptions}
+                  onChange={handleMultiSelectChange}
+                  placeholder="Select preferred activities..."
+                />
+              </div>
 
-            {/* Dietary Preferences */}
-            <div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaUtensils className="mr-2 text-blue-500" />
-                Dietary Preferences
-              </label>
-              <Select
-                name="dietaryPreferences"
-                options={dietaryOptions}
-                onChange={handleSelectChange}
-                value={dietaryOptions.find(
-                  option => option.value === formData.dietaryPreferences
-                )}
-                placeholder="Select dietary needs..."
-              />
-            </div>
+              {/* Dietary Preferences */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaUtensils className="mr-2 text-blue-500" />
+                  Dietary Preferences
+                </label>
+                <Select
+                  name="dietaryPreferences"
+                  options={dietaryOptions}
+                  onChange={handleSelectChange}
+                  value={dietaryOptions.find(
+                    option => option.value === formData.dietaryPreferences
+                  )}
+                  placeholder="Select dietary needs..."
+                />
+              </div>
 
-            {/* Transportation Preferences */}
-            <div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaBus className="mr-2 text-blue-500" />
-                Transportation Preference
-              </label>
-              <Select
-                name="transportation"
-                options={transportationOptions}
-                onChange={handleSelectChange}
-                value={transportationOptions.find(
-                  option => option.value === formData.transportation
-                )}
-                placeholder="Select transportation preference..."
-              />
-            </div>
+              {/* Transportation Preferences */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaBus className="mr-2 text-blue-500" />
+                  Transportation Preference
+                </label>
+                <Select
+                  name="transportation"
+                  options={transportationOptions}
+                  onChange={handleSelectChange}
+                  value={transportationOptions.find(
+                    option => option.value === formData.transportation
+                  )}
+                  placeholder="Select transportation preference..."
+                />
+              </div>
 
-            {/* Accommodation Type */}
-            <div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaHotel className="mr-2 text-blue-500" />
-                Accommodation Type
-              </label>
-              <Select
-                name="accommodationType"
-                options={accommodationOptions}
-                onChange={handleSelectChange}
-                value={accommodationOptions.find(
-                  option => option.value === formData.accommodationType
-                )}
-                placeholder="Select accommodation type..."
-              />
-            </div>
+              {/* Accommodation Type */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaHotel className="mr-2 text-blue-500" />
+                  Accommodation Type
+                </label>
+                <Select
+                  name="accommodationType"
+                  options={accommodationOptions}
+                  onChange={handleSelectChange}
+                  value={accommodationOptions.find(
+                    option => option.value === formData.accommodationType
+                  )}
+                  placeholder="Select accommodation type..."
+                />
+              </div>
 
-            {/* Special Requirements */}
-            <div>
-              <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
-                <FaAccessibleIcon className="mr-2 text-blue-500" />
-                Special Requirements
-              </label>
-              <textarea
-                name="specialRequirements"
-                value={formData.specialRequirements}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
-                placeholder="Accessibility needs, health considerations, etc."
-                rows="3"
-              />
-            </div>
-
+              {/* Special Requirements */}
+              <div>
+                <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
+                  <FaAccessibleIcon className="mr-2 text-blue-500" />
+                  Special Requirements
+                </label>
+                <textarea
+                  name="specialRequirements"
+                  value={formData.specialRequirements}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
+                  placeholder="Accessibility needs, health considerations, etc."
+                  rows="3"
+                />
+              </div>
             </div>
 
             <div>

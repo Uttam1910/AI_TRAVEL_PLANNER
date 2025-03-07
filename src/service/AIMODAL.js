@@ -23,10 +23,15 @@ const generationConfig = {
 
 // Revised prompt template with explicit instructions
 const createPrompt = (params) => {
+  // Ensure tripType is a comma-separated string if it comes as an array
+  const tripTypeStr = Array.isArray(params.tripType)
+    ? params.tripType.join(", ")
+    : params.tripType;
+
   return `Generate a detailed Travel Plan with the following parameters:
 Location: ${params.location}
 Start Date: ${params.date}
-Trip Type: ${params.tripType}
+Trip Type(s): ${tripTypeStr}
 Duration: ${params.duration} days
 Budget: ${params.budget}
 Travelers: ${params.travelCompanion}
@@ -44,6 +49,9 @@ Include:
     - A plan array with each activity containing: activity name, detailed description, recommended time allocation, cost, and duration
 - Transportation options between locations with cost and estimated durations
 - Dining suggestions matching dietary preferences (including estimated costs)
+- If the trip type includes Culinary, provide top local dining recommendations and food tours.
+- If the trip type includes Festival & Events, include local festival schedules and events information.
+- If the trip type includes Nature Retreat, provide options for eco-friendly accommodations and nature reserve visits.
 - A budget breakdown with estimated costs for accommodation, transportation, food, and activities
 - Additional safety tips and local customs
 
@@ -72,6 +80,7 @@ Format the response in JSON exactly using this structure:
   "additionalTips": [ /* safety, customs, etc. */ ]
 }`;
 };
+
 
 async function run(prompt) {
   try {
