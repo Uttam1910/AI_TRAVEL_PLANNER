@@ -4,6 +4,12 @@ const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+// Additional packages for image processing integration
+const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+const upload = multer();
+
 // Initialize Google Generative AI
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -105,6 +111,7 @@ async function run(prompt) {
   }
 }
 
+
 // Initialize Express server
 const app = express();
 app.use(cors());
@@ -185,6 +192,45 @@ app.post("/plans", async (req, res) => {
   }
 });
 
+
+// ==============================
+// NEW: Image Recognition Route
+// ==============================
+
+// This route will receive an image upload from the client, then forward it to your Flask image processing service.
+// Make sure your Flask service is running (e.g., on http://localhost:5001/analyze)
+app.post('/api/landmark', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('image', req.file.buffer, {
+      filename: req.file.originalname,
+    });
+
+
+    const response = await axios.post('http://127.0.0.1:5001/analyze', formData, {
+      headers: formData.getHeaders(),
+      timeout: 20000, // 20 seconds timeout
+    });
+    
+
+    res.json(response.data);
+  } catch (error) {
+    // Log detailed error information
+    if (error.response) {
+      console.error('Flask service responded with error:', error.response.data);
+    } else {
+      console.error('Error forwarding image:', error.message);
+    }
+    res.status(500).json({ error: 'Error processing image' });
+  }
+});
+
+
+
 // Stub routes for future enhancements
 app.get("/plans/:id", (req, res) => {
   res.status(501).json({ error: "Not implemented" });
@@ -202,3 +248,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+

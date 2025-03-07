@@ -8,6 +8,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import Trips from "./my-trips/index";
 // import ExploreGlobe from "./components/GoogleGlobe";
 import GoogleGlobe from './components/GoogleGlobe';
+import LandmarkDetection from "./image_analysis/imageinput"; // Import your Landmark Detection component
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,6 +33,7 @@ function App() {
           {/* <Route path="/trips/:tripId" element={<TripDetail />} /> */}
           {/* <Route path="/explore" element={<ExploreGlobe />} /> */}
           <Route path="/explore" element={<GoogleGlobe />} />
+          <Route path="/landmark" element={<LandmarkDetection />} /> {/* Landmark Detection */}
         </Routes>
         {/* </AuthProvider> */}
       </GoogleOAuthProvider>

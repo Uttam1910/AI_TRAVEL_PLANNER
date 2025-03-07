@@ -8,6 +8,7 @@ const Hero = () => {
   // Navigation handlers
   const handleGetStartedClick = () => navigate("/create-trip");
   const handleExploreClick = () => navigate("/explore");
+  const handleLandmarkClick = () => navigate("/landmark"); // Navigate to image analysis page
 
   return (
     <section className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-20 px-6 min-h-screen flex items-center">
@@ -19,11 +20,11 @@ const Hero = () => {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl leading-relaxed mb-8">
-          Get AI-powered recommendations, real-time insights, and seamless planning tools to craft the perfect journey.  
+          Get AI-powered recommendations, real-time insights, and seamless planning tools to craft the perfect journey.
           <span className="block mt-2 text-yellow-300">Adventure awaits—start your journey today!</span>
         </p>
 
-        {/* Buttons */}
+        {/* Primary Action Buttons */}
         <div className="flex justify-center gap-6 mt-6">
           <button
             onClick={handleGetStartedClick}
@@ -40,7 +41,7 @@ const Hero = () => {
         </div>
 
         {/* Additional Features Section */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
             <h3 className="text-xl font-bold text-yellow-300">🔍 Smart Recommendations</h3>
             <p className="text-sm mt-2">Personalized trip plans tailored to your preferences.</p>
@@ -52,6 +53,15 @@ const Hero = () => {
           <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
             <h3 className="text-xl font-bold text-yellow-300">📅 Seamless Booking</h3>
             <p className="text-sm mt-2">Plan & book accommodations, flights, and activities.</p>
+          </div>
+          <div 
+            onClick={handleLandmarkClick} 
+            className="cursor-pointer bg-white bg-opacity-10 p-6 rounded-lg shadow-lg"
+          >
+            <h3 className="text-xl font-bold text-yellow-300">📸 Landmark Detection</h3>
+            <p className="text-sm mt-2">
+              Analyze images to discover iconic landmarks and get detailed insights.
+            </p>
           </div>
         </div>
       </div>

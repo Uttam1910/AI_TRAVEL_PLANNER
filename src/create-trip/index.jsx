@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  FaUserFriends,    // For "A Couple"
-  FaUsers,          // For "Family"
-  FaHandshake,      // For "Friends"
-  FaMoneyBillWave,  // For "Cheap"
-  FaDollarSign,     // For "Moderate"
-  FaGem,            // For "Luxury
+  FaUserFriends, // For "A Couple"
+  FaUsers, // For "Family"
+  FaHandshake, // For "Friends"
+  FaMoneyBillWave, // For "Cheap"
+  FaDollarSign, // For "Moderate"
+  FaGem, // For "Luxury
   FaWallet, // replaced FaDollarSign with FaWallet for budget
   FaMapMarkerAlt,
-  FaCalendarAlt,  
+  FaCalendarAlt,
   FaMountain,
   FaUmbrellaBeach,
   FaLandmark,
@@ -23,6 +23,7 @@ import {
   FaLeaf,
   FaTree,
 } from "react-icons/fa";
+import DatePicker from "react-datepicker";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
@@ -75,16 +76,19 @@ const CreateTrip = () => {
     { label: "Road Trip", value: "Road Trip", icon: <FaBus /> },
     { label: "Eco-Tourism", value: "Eco-Tourism", icon: <FaTree /> },
     { label: "Culinary", value: "Culinary", icon: <FaUtensils /> },
-    { label: "Festival & Events", value: "Festival & Events", icon: <FaMusic /> },
+    {
+      label: "Festival & Events",
+      value: "Festival & Events",
+      icon: <FaMusic />,
+    },
     { label: "Nature Retreat", value: "Nature Retreat", icon: <FaTree /> },
   ];
 
   const budgetOptions = [
     { label: "Cheap", value: "Cheap", icon: <FaMoneyBillWave /> },
-    { label: "Moderate", value: "Moderate", icon: <FaDollarSign /> },
+    { label: "Moderate", value: "Moderate", icon: <FaWallet /> }, // Changed here
     { label: "Luxury", value: "Luxury", icon: <FaGem /> },
   ];
-  
 
   const travelCompanionOptions = [
     { label: "Just Me", value: "Just Me", icon: <FaUser /> },
@@ -92,7 +96,6 @@ const CreateTrip = () => {
     { label: "Family", value: "Family", icon: <FaUsers /> },
     { label: "Friends", value: "Friends", icon: <FaHandshake /> },
   ];
-  
 
   // New options for additional fields
   const interestOptions = [
@@ -146,7 +149,9 @@ const CreateTrip = () => {
   const handleMultiSelectChange = (selectedOptions, actionMeta) => {
     setFormData({
       ...formData,
-      [actionMeta.name]: selectedOptions ? selectedOptions.map(option => option.value) : [],
+      [actionMeta.name]: selectedOptions
+        ? selectedOptions.map((option) => option.value)
+        : [],
     });
   };
 
@@ -268,6 +273,24 @@ const CreateTrip = () => {
     onError: handleGoogleLoginFailure,
   });
 
+  // Define the custom input using forwardRef so it receives DatePicker props
+  const CustomInput = React.forwardRef(({ value, onClick }, ref) => (
+    <div className="relative flex items-center">
+      <input
+        type="text"
+        onClick={onClick}
+        ref={ref}
+        value={value}
+        readOnly
+        className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg shadow-sm 
+        focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 
+        text-left h-[42px] hover:cursor-pointer"
+        placeholder="Select travel dates"
+      />
+      <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    </div>
+  ));
+
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
       <section className="bg-white py-16 px-6">
@@ -276,8 +299,9 @@ const CreateTrip = () => {
             Ready to Plan Your Dream Trip?
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Let's get started by filling in some details. Our smart tool will help
-            you plan an unforgettable trip based on your preferences and budget. 🧳✈️
+            Let's get started by filling in some details. Our smart tool will
+            help you plan an unforgettable trip based on your preferences and
+            budget. 🧳✈️
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -295,7 +319,10 @@ const CreateTrip = () => {
                 apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
                 selectProps={{
                   value: formData.destination
-                    ? { label: formData.destination, value: formData.destination }
+                    ? {
+                        label: formData.destination,
+                        value: formData.destination,
+                      }
                     : null,
                   onChange: (selectedOption) =>
                     setFormData((prev) => ({
@@ -319,15 +346,103 @@ const CreateTrip = () => {
                 <FaCalendarAlt className="mr-2 text-blue-500" />
                 When are you planning to travel?
               </label>
-              <input
-                type="date"
-                id="travelDates"
-                name="travelDates"
-                value={formData.travelDates}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-                required
-              />
+              <div className="relative">
+                <DatePicker
+                  selected={
+                    formData.travelDates ? new Date(formData.travelDates) : null
+                  }
+                  onChange={(date) => {
+                    const isoDate = date
+                      ? date.toISOString().split("T")[0]
+                      : "";
+                    setFormData({ ...formData, travelDates: isoDate });
+                  }}
+                  dateFormat="yyyy-MM-dd"
+                  className="w-full px-4 py-3 pl-3 border border-gray-300 rounded-lg shadow-sm 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 
+                 text-left h-[42px] hover:cursor-pointer"
+                  placeholderText="Select travel dates"
+                  required
+                  minDate={new Date()}
+                  isClearable
+                  withPortal
+                  popperClassName="z-50"
+                  // Remove showMonthDropdown & showYearDropdown in favor of a custom header
+                  renderCustomHeader={({
+                    date,
+                    changeYear,
+                    changeMonth,
+                    decreaseMonth,
+                    increaseMonth,
+                    prevMonthButtonDisabled,
+                    nextMonthButtonDisabled,
+                  }) => (
+                    <div className="flex items-center justify-between px-2 py-2 bg-white">
+                      <button
+                        onClick={decreaseMonth}
+                        disabled={prevMonthButtonDisabled}
+                        className="p-2 text-gray-700 hover:text-blue-500"
+                      >
+                        &lt;
+                      </button>
+                      <div className="flex items-center">
+                        <select
+                          value={date.getMonth()}
+                          onChange={({ target: { value } }) =>
+                            changeMonth(Number(value))
+                          }
+                          className="bg-white border border-gray-300 rounded-md px-2 py-1 
+                             text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {[
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December",
+                          ].map((month, index) => (
+                            <option key={month} value={index}>
+                              {month}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={date.getFullYear()}
+                          onChange={({ target: { value } }) =>
+                            changeYear(value)
+                          }
+                          className="ml-2 bg-white border border-gray-300 rounded-md px-2 py-1 
+                             text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {Array.from(
+                            { length: 100 },
+                            (_, i) => new Date().getFullYear() - i
+                          ).map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        onClick={increaseMonth}
+                        disabled={nextMonthButtonDisabled}
+                        className="p-2 text-gray-700 hover:text-blue-500"
+                      >
+                        &gt;
+                      </button>
+                    </div>
+                  )}
+                  customInput={<CustomInput />}
+                />
+              </div>
             </div>
 
             {/* Trip Category */}
@@ -343,7 +458,7 @@ const CreateTrip = () => {
                 isMulti
                 name="tripCategory"
                 options={tripCategoryOptions}
-                value={tripCategoryOptions.filter(option =>
+                value={tripCategoryOptions.filter((option) =>
                   formData.tripCategory.includes(option.value)
                 )}
                 onChange={handleMultiSelectChange}
@@ -376,59 +491,66 @@ const CreateTrip = () => {
               />
             </div>
 
-            {/* Budget */}
-<div>
-  <label
-    htmlFor="budget"
-    className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
-  >
-    <FaWallet className="mr-2 text-blue-500" />
-    What is your budget?
-  </label>
-  <Select
-    name="budget"
-    options={budgetOptions}
-    value={budgetOptions.find(
-      (option) => option.value === formData.budget
-    )}
-    onChange={handleSelectChange}
-    components={{ SingleValue: CustomSingleValue }}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
-      focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-    placeholder="Select your budget"
-    required
-  />
-</div>
+            {/* // 3. Modified Budget section */}
+            <div>
+              <label
+                htmlFor="budget"
+                className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              >
+                <FaWallet className="mr-2 text-blue-500" />
+                What is your budget?
+              </label>
+              <Select
+                name="budget"
+                options={budgetOptions}
+                value={budgetOptions.find(
+                  (option) => option.value === formData.budget
+                )}
+                onChange={handleSelectChange}
+                components={{
+                  SingleValue: CustomSingleValue,
+                  IndicatorSeparator: () => null,
+                }}
+                styles={singleSelectStyles}
+                className="w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+                placeholder="Select your budget"
+                required
+              />
+            </div>
 
-
-{/* Travel Companion */}
-<div>
-  <label
-    htmlFor="travelCompanion"
-    className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
-  >
-    <FaUsers className="mr-2 text-blue-500" />
-    Who do you plan on traveling with?
-  </label>
-  <Select
-    name="travelCompanion"
-    options={travelCompanionOptions}
-    value={travelCompanionOptions.find(
-      (option) => option.value === formData.travelCompanion
-    )}
-    onChange={handleSelectChange}
-    components={{ SingleValue: CustomSingleValue }}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
-    placeholder="Select your travel companion"
-    required
-  />
-</div>
-
+            {/* // 4. Modified Travel Companion section */}
+            <div>
+              <label
+                htmlFor="travelCompanion"
+                className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start"
+              >
+                <FaUsers className="mr-2 text-blue-500" />
+                Who do you plan on traveling with?
+              </label>
+              <Select
+                name="travelCompanion"
+                options={travelCompanionOptions}
+                value={travelCompanionOptions.find(
+                  (option) => option.value === formData.travelCompanion
+                )}
+                onChange={handleSelectChange}
+                components={{
+                  SingleValue: CustomSingleValue,
+                  IndicatorSeparator: () => null,
+                }}
+                styles={singleSelectStyles}
+                className="w-full border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 text-left"
+                placeholder="Select your travel companion"
+                required
+              />
+            </div>
 
             {/* Additional Preferences Section */}
             <div className="border-t pt-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Additional Preferences</h3>
-              
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                Additional Preferences
+              </h3>
+
               {/* Interests */}
               <div>
                 <label className="text-xl font-semibold text-gray-700 mb-2 flex items-center justify-start">
@@ -472,7 +594,7 @@ const CreateTrip = () => {
                   options={dietaryOptions}
                   onChange={handleSelectChange}
                   value={dietaryOptions.find(
-                    option => option.value === formData.dietaryPreferences
+                    (option) => option.value === formData.dietaryPreferences
                   )}
                   placeholder="Select dietary needs..."
                 />
@@ -489,7 +611,7 @@ const CreateTrip = () => {
                   options={transportationOptions}
                   onChange={handleSelectChange}
                   value={transportationOptions.find(
-                    option => option.value === formData.transportation
+                    (option) => option.value === formData.transportation
                   )}
                   placeholder="Select transportation preference..."
                 />
@@ -506,7 +628,7 @@ const CreateTrip = () => {
                   options={accommodationOptions}
                   onChange={handleSelectChange}
                   value={accommodationOptions.find(
-                    option => option.value === formData.accommodationType
+                    (option) => option.value === formData.accommodationType
                   )}
                   placeholder="Select accommodation type..."
                 />
