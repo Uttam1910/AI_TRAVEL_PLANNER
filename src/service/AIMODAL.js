@@ -5,9 +5,9 @@ const { v4: uuidv4 } = require("uuid");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Additional packages for image processing integration
-const multer = require('multer');
-const axios = require('axios');
-const FormData = require('form-data');
+const multer = require("multer");
+const axios = require("axios");
+const FormData = require("form-data");
 const upload = multer();
 
 // Initialize Google Generative AI
@@ -29,7 +29,6 @@ const generationConfig = {
 
 // Revised prompt template with explicit instructions
 const createPrompt = (params) => {
-  // Ensure tripType is a comma-separated string if it comes as an array
   const tripTypeStr = Array.isArray(params.tripType)
     ? params.tripType.join(", ")
     : params.tripType;
@@ -87,7 +86,6 @@ Format the response in JSON exactly using this structure:
 }`;
 };
 
-
 async function run(prompt) {
   try {
     const chatSession = model.startChat({
@@ -111,7 +109,6 @@ async function run(prompt) {
   }
 }
 
-
 // Initialize Express server
 const app = express();
 app.use(cors());
@@ -119,7 +116,9 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-// POST route to generate a travel plan
+// -------------------------
+// Travel Plan Generation Route
+// -------------------------
 app.post("/plans", async (req, res) => {
   try {
     const {
@@ -137,7 +136,6 @@ app.post("/plans", async (req, res) => {
       specialRequirements = "None",
     } = req.body;
 
-    // Validate required fields
     if (!location || !date || !duration) {
       return res.status(400).json({
         error: "Missing required fields: location, date, and duration are required.",
@@ -161,18 +159,14 @@ app.post("/plans", async (req, res) => {
     });
 
     let responseText = await run(prompt);
-    // Clean response text (remove markdown formatting if present)
     responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
 
-    // Log raw AI response for debugging
     console.log("Raw AI response:", responseText);
 
     try {
       const responseData = JSON.parse(responseText);
-      // Assign the generated tripId to the response
       responseData.tripId = tripId;
 
-      // Log each output field for verification
       console.log("Parsed AI Generated Travel Plan Output:");
       Object.entries(responseData).forEach(([key, value]) => {
         console.log(`${key}:`, value);
@@ -192,50 +186,56 @@ app.post("/plans", async (req, res) => {
   }
 });
 
-
-// ==============================
-// NEW: Image Recognition Route
-// ==============================
-
-// This route will receive an image upload from the client, then forward it to your Flask image processing service.
-// Make sure your Flask service is running (e.g., on http://localhost:5001/analyze)
-app.post('/api/landmark', upload.single('image'), async (req, res) => {
+// -------------------------
+// Image Recognition Route
+// -------------------------
+app.post("/api/landmark", upload.single("image"), async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: 'No image file provided' });
+    return res.status(400).json({ error: "No image file provided" });
   }
 
   try {
     const formData = new FormData();
-    formData.append('image', req.file.buffer, {
+    formData.append("image", req.file.buffer, {
       filename: req.file.originalname,
     });
 
-
-    const response = await axios.post('http://127.0.0.1:5001/analyze', formData, {
+    const response = await axios.post("http://127.0.0.1:5001/analyze", formData, {
       headers: formData.getHeaders(),
-      timeout: 20000, // 20 seconds timeout
+      timeout: 20000,
     });
-    
 
     res.json(response.data);
   } catch (error) {
-    // Log detailed error information
     if (error.response) {
-      console.error('Flask service responded with error:', error.response.data);
+      console.error("Flask service responded with error:", error.response.data);
     } else {
-      console.error('Error forwarding image:', error.message);
+      console.error("Error forwarding image:", error.message);
     }
-    res.status(500).json({ error: 'Error processing image' });
+    res.status(500).json({ error: "Error processing image" });
   }
 });
 
+// -------------------------
+// Hotel Booking Endpoints
+// -------------------------
+const hotelsRoutes = require("./routes/hotelsRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+app.use("/api", hotelsRoutes);
+app.use("/api", bookingRoutes);
 
+
+// -------------------------
+// Dummy Payment Endpoint
+// -------------------------
+const paymentRoutes = require("./routes/paymentRoutes");
+// Mount payment routes on "/api/payment" so that the route becomes /api/payment/:bookingId
+app.use("/api/payment", paymentRoutes);
 
 // Stub routes for future enhancements
 app.get("/plans/:id", (req, res) => {
   res.status(501).json({ error: "Not implemented" });
 });
-
 app.post("/plans/save", (req, res) => {
   res.status(501).json({ error: "Not implemented" });
 });
@@ -248,5 +248,3 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-

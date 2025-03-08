@@ -29,3 +29,5 @@ dist-ssr
 
 # Miscellaneous
 .codegpt
+
+src/python/service-account.json
