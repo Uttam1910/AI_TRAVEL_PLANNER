@@ -34,6 +34,20 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { FaMusic } from "react-icons/fa";
 Modal.setAppElement("#root");
+  
+
+
+// Define custom styles for single select components
+const singleSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderColor: state.isFocused ? "#1d4ed8" : provided.borderColor,
+    boxShadow: state.isFocused ? "0 0 0 1px #1d4ed8" : provided.boxShadow,
+    "&:hover": {
+      borderColor: "#1d4ed8",
+    },
+  }),
+};
 
 const CustomSingleValue = ({ data }) => (
   <div className="flex items-center">

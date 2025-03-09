@@ -217,6 +217,21 @@ app.post("/api/landmark", upload.single("image"), async (req, res) => {
 });
 
 // -------------------------
+// Landmarks Data Endpoint for Interactive Maps
+// -------------------------
+// Make sure this endpoint is defined in your Express app
+app.get("/api/landmarks", (req, res) => {
+  const landmarks = [
+    { id: 1, name: "Golden Gate Bridge", position: { lat: 37.8199, lng: -122.4783 }, description: "A famous suspension bridge in San Francisco." },
+    { id: 2, name: "Alcatraz Island", position: { lat: 37.8267, lng: -122.4230 }, description: "Historic island prison turned museum." },
+    { id: 3, name: "Fisherman's Wharf", position: { lat: 37.8080, lng: -122.4177 }, description: "Popular tourist area with seafood and shops." },
+  ];
+  res.json(landmarks);
+});
+
+
+
+// -------------------------
 // Hotel Booking Endpoints
 // -------------------------
 const hotelsRoutes = require("./routes/hotelsRoutes");
@@ -224,12 +239,10 @@ const bookingRoutes = require("./routes/bookingRoutes");
 app.use("/api", hotelsRoutes);
 app.use("/api", bookingRoutes);
 
-
 // -------------------------
 // Dummy Payment Endpoint
 // -------------------------
 const paymentRoutes = require("./routes/paymentRoutes");
-// Mount payment routes on "/api/payment" so that the route becomes /api/payment/:bookingId
 app.use("/api/payment", paymentRoutes);
 
 // Stub routes for future enhancements

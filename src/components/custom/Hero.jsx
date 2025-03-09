@@ -10,6 +10,7 @@ const Hero = () => {
   const handleExploreClick = () => navigate("/explore");
   const handleLandmarkClick = () => navigate("/landmark"); // Navigate to image analysis page
   const handleBookingClick = () => navigate("/hotel-booking"); // Navigate to hotel booking section
+  const handleMapClick = () => navigate("/map"); // Navigate to the Interactive Maps page
 
   return (
     <section className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-20 px-6 min-h-screen flex items-center">
@@ -47,7 +48,10 @@ const Hero = () => {
             <h3 className="text-xl font-bold text-yellow-300">🔍 Smart Recommendations</h3>
             <p className="text-sm mt-2">Personalized trip plans tailored to your preferences.</p>
           </div>
-          <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg">
+          <div 
+            onClick={handleExploreClick}
+            className="cursor-pointer bg-white bg-opacity-10 p-6 rounded-lg shadow-lg"
+          >
             <h3 className="text-xl font-bold text-yellow-300">📍 Interactive Maps</h3>
             <p className="text-sm mt-2">Explore new places with detailed travel insights.</p>
           </div>
