@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";  // Initializes the Firebase app
 import { getFirestore, collection, addDoc } from "firebase/firestore";  // Imports Firestore functions for database interactions
 import { doc, getDoc, setDoc  } from "firebase/firestore"; // Import Firestore functions
+import { query, where, getDocs } from "firebase/firestore";
 
 // Firebase configuration values loaded from environment variables (.env file)
 const firebaseConfig = {
@@ -71,3 +72,23 @@ export const getTripDetails = async (tripId) => {
   }
 };
 
+
+
+// Function to fetch all trips for a specific user (by user ID)
+// It assumes that each trip document stores user details in the "userDetails" field with an "id" property.
+export const getUserTrips = async (userId) => {
+  try {
+    const tripsRef = collection(db, "trips");
+    const q = query(tripsRef, where("userDetails.id", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    let trips = [];
+    querySnapshot.forEach((doc) => {
+      trips.push({ id: doc.id, ...doc.data() });
+    });
+    return trips;
+  } catch (error) {
+    console.error("Error fetching user trips: ", error);
+    throw error;
+  }
+};

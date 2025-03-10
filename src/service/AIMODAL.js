@@ -27,7 +27,7 @@ const generationConfig = {
   responseMimeType: "application/json",
 };
 
-// Revised prompt template with explicit instructions
+// Revised prompt template for generating travel plans
 const createPrompt = (params) => {
   const tripTypeStr = Array.isArray(params.tripType)
     ? params.tripType.join(", ")
@@ -109,7 +109,6 @@ async function run(prompt) {
   }
 }
 
-// Initialize Express server
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -187,6 +186,37 @@ app.post("/plans", async (req, res) => {
 });
 
 // -------------------------
+// AI Recommendations Route
+// -------------------------
+app.post("/api/ai-recommendations", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "No prompt provided" });
+    }
+    let responseText = await run(prompt);
+    responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    // Attempt to parse as JSON; if that fails, split by lines.
+    let recommendations;
+    try {
+      recommendations = JSON.parse(responseText);
+      // If the parsed object has a 'recommendations' field, use it.
+      if (recommendations.recommendations) {
+        recommendations = recommendations.recommendations;
+      }
+    } catch (err) {
+      recommendations = responseText.split("\n").filter(line => line.trim() !== "");
+    }
+    
+    res.json({ recommendations });
+  } catch (error) {
+    console.error("Error in AI recommendations endpoint:", error);
+    res.status(500).json({ error: "Failed to generate AI recommendations" });
+  }
+});
+
+// -------------------------
 // Image Recognition Route
 // -------------------------
 app.post("/api/landmark", upload.single("image"), async (req, res) => {
@@ -219,7 +249,6 @@ app.post("/api/landmark", upload.single("image"), async (req, res) => {
 // -------------------------
 // Landmarks Data Endpoint for Interactive Maps
 // -------------------------
-// Make sure this endpoint is defined in your Express app
 app.get("/api/landmarks", (req, res) => {
   const landmarks = [
     { id: 1, name: "Golden Gate Bridge", position: { lat: 37.8199, lng: -122.4783 }, description: "A famous suspension bridge in San Francisco." },
@@ -228,8 +257,6 @@ app.get("/api/landmarks", (req, res) => {
   ];
   res.json(landmarks);
 });
-
-
 
 // -------------------------
 // Hotel Booking Endpoints
