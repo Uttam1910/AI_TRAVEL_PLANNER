@@ -307,7 +307,7 @@ const CreateTrip = () => {
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      <section className="bg-white py-16 px-6">
+      <section className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-start justify-center py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-extrabold text-blue-600 mb-6">
             Ready to Plan Your Dream Trip?

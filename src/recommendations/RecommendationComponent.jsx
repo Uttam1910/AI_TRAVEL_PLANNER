@@ -41,7 +41,10 @@ const DynamicRecommendations = () => {
   const fetchRecommendationsForType = async (tripType) => {
     const prompt = `List 10 diverse and exciting travel destinations known for their ${tripType} experiences. For each destination, provide a brief description.`;
     try {
-      const response = await axios.post("http://localhost:5000/api/ai-recommendations", { prompt });
+      const response = await axios.post(
+        "http://localhost:5000/api/ai-recommendations",
+        { prompt }
+      );
       if (response.data && response.data.recommendations) {
         return response.data.recommendations;
       }
@@ -82,7 +85,9 @@ const DynamicRecommendations = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
-          <p className="text-lg font-medium text-gray-700">Curating your perfect recommendations...</p>
+          <p className="text-lg font-medium text-gray-700">
+            Curating your perfect recommendations...
+          </p>
         </div>
       </div>
     );
@@ -91,7 +96,9 @@ const DynamicRecommendations = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
         <div className="text-center max-w-md p-6 rounded-xl bg-white shadow-lg">
           <div className="text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Oops! Something went wrong</h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            Oops! Something went wrong
+          </h2>
           <p className="text-gray-600">{error}</p>
         </div>
       </div>
@@ -106,8 +113,13 @@ const DynamicRecommendations = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="text-center max-w-md p-6">
           <div className="text-6xl mb-6">🌍</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Let's Start Your Journey!</h2>
-          <p className="text-gray-600">No trip history found. Start planning your first adventure to get personalized recommendations!</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Let's Start Your Journey!
+          </h2>
+          <p className="text-gray-600">
+            No trip history found. Start planning your first adventure to get
+            personalized recommendations!
+          </p>
         </div>
       </div>
     );
@@ -125,17 +137,18 @@ const DynamicRecommendations = () => {
   };
 
   return (
-<div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pt-20 pb-10 px-4 sm:px-6 lg:px-8">
-<div className="max-w-7xl mx-auto">
-         {/* Header Section */}
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Your Personalized Travel Guide
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Discover destinations tailored to your travel personality and history
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Your Personalized Travel Guide
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover destinations tailored to your travel personality and
+            history
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedCategories.map(([type, recs]) => (
@@ -153,7 +166,7 @@ const DynamicRecommendations = () => {
                     {type} Destinations
                   </h3>
                 </div>
-                
+
                 {recs.length > 0 ? (
                   <ul className="space-y-5">
                     {recs.map((item, index) => (
@@ -185,7 +198,9 @@ const DynamicRecommendations = () => {
                   </ul>
                 ) : (
                   <div className="text-center py-6">
-                    <p className="text-gray-500 italic">More recommendations coming soon!</p>
+                    <p className="text-gray-500 italic">
+                      More recommendations coming soon!
+                    </p>
                   </div>
                 )}
               </div>
