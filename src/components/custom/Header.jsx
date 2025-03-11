@@ -81,25 +81,28 @@ const Header = () => {
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md border-b border-gray-300 w-full">
-        <nav className="flex justify-between items-center px-4 py-3 w-full">
-          {/* Logo */}
-          <Link to="/" className="flex items-center ml-2 mt-2">
+      <header className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50">
+        <nav className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+          {/* Logo Container with fixed size */}
+          <Link 
+            to="/" 
+            className="flex items-center w-32 h-16" // Fixed container size
+          >
             <img
-              src="/logoipsum-348.svg"
+              src="/logo.png"
               alt="Logo"
-              className="w-40 h-auto transition-transform hover:scale-105"
+              className="w-full h-full object-contain transition-transform hover:scale-105"
             />
           </Link>
 
-          {/* Desktop Navigation: Render only if there are navigation items */}
+          {/* Desktop Navigation */}
           {navigationItems.length > 0 && (
-            <ul className="hidden md:flex gap-6 text-lg font-medium">
+            <ul className="hidden md:flex gap-8 items-center">
               {navigationItems.map((item) => (
                 <li key={item}>
                   <Link
                     to={`/${item.toLowerCase()}`}
-                    className="hover:text-yellow-300 transition duration-300"
+                    className="text-gray-300 hover:text-blue-400 transition-colors duration-300 font-medium text-lg"
                   >
                     {item}
                   </Link>
@@ -108,63 +111,67 @@ const Header = () => {
             </ul>
           )}
 
-          {/* Mobile Menu Icon: Render only if there are navigation items */}
+          {/* Mobile Menu Toggle */}
           {navigationItems.length > 0 && (
-            <div
-              className="md:hidden cursor-pointer"
+            <button
+              className="md:hidden p-2 text-gray-300 hover:text-blue-400 transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-            </div>
+            </button>
           )}
 
-          {/* Mobile Dropdown Menu: Render only if menuOpen and there are navigation items */}
+          {/* Mobile Menu */}
           {menuOpen && navigationItems.length > 0 && (
-            <ul className="absolute top-16 left-0 w-full bg-white text-gray-900 shadow-md p-4 flex flex-col gap-4 md:hidden">
-              {navigationItems.map((item) => (
-                <li key={item}>
-                  <Link
-                    to={`/${item.toLowerCase()}`}
-                    onClick={() => setMenuOpen(false)}
-                    className="block p-2"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="absolute top-full left-0 w-full bg-slate-800/95 backdrop-blur-sm md:hidden">
+              <ul className="flex flex-col items-center py-4 gap-4">
+                {navigationItems.map((item) => (
+                  <li key={item} className="w-full text-center">
+                    <Link
+                      to={`/${item.toLowerCase()}`}
+                      onClick={() => setMenuOpen(false)}
+                      className="block py-3 text-gray-300 hover:text-blue-400 hover:bg-white/5 transition-all"
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
-          {/* Authentication Section */}
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4 mr-2 mt-2 relative z-50">
-              {userProfile?.picture ? (
-                <img
-                  src={userProfile.picture}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
-                />
-              ) : (
-                <FaUserCircle className="text-3xl text-white" />
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-white text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="mr-2 mt-2 relative z-50">
+          {/* Auth Section */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <div className="relative group">
+                  {userProfile?.picture ? (
+                    <img
+                      src={userProfile.picture}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full border-2 border-white/20 hover:border-blue-400 transition-all cursor-pointer"
+                    />
+                  ) : (
+                    <FaUserCircle className="text-3xl text-gray-300 hover:text-blue-400 cursor-pointer" />
+                  )}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white/5 border border-white/10 text-gray-300 px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
               <button
                 onClick={() => login()}
-                className="flex items-center gap-2 bg-white text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="flex items-center gap-3 bg-white/5 border border-white/10 text-gray-300 px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm"
               >
-                <FaGoogle size={20} />
-                Sign in with Google
+                <FaGoogle className="text-blue-400" />
+                Sign In
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </nav>
       </header>
     </GoogleOAuthProvider>
