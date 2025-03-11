@@ -31,3 +31,4 @@ dist-ssr
 .codegpt
 
 src/python/service-account.json
+.qodo

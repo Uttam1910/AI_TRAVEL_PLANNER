@@ -6,7 +6,7 @@ const Hero = () => {
 
   // Navigation handlers
   const handleGetStartedClick = () => navigate("/create-trip");
-  const handleExploreClick = () => navigate("/explore");
+  const handleExploreClick = () => navigate("/explore"); // Navigates to the Explore section
   const handleLandmarkClick = () => navigate("/landmark");
   const handleBookingClick = () => navigate("/hotel-booking");
   const handleRecommendationsClick = () => navigate("/recommendations");
@@ -46,7 +46,7 @@ const Hero = () => {
             Start Planning Now
           </button>
           <button
-            onClick={handleExploreClick}
+            onClick={handleExploreClick} // Clicking this navigates to the Explore section
             className="border-2 border-blue-400 text-blue-100 font-medium py-4 px-8 rounded-lg hover:bg-blue-500/10 transition-all duration-300 hover:scale-[1.02]"
           >
             Discover Destinations
@@ -57,7 +57,7 @@ const Hero = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { title: "AI Recommendations", icon: "🤖", action: handleRecommendationsClick },
-            { title: "Smart Maps", icon: "🌍", action: handleExploreClick },
+            { title: "Smart Maps", icon: "🌍", action: handleExploreClick }, // Also navigates to Explore
             { title: "Booking Integration", icon: "📅", action: handleBookingClick },
             { title: "Landmark Analysis", icon: "🔍", action: handleLandmarkClick },
           ].map((feature, idx) => (

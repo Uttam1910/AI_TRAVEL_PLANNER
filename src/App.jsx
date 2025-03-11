@@ -12,6 +12,8 @@ import LandmarkDetection from "./image_analysis/imageinput"; // Import your Land
 import HotelBookingPayment from "./hotelbooking/HotelBookingPayment";
 import MapComponent from "./maps/MapComponent"; // Interactive Maps component
 import RecommendationComponent from "./recommendations/RecommendationComponent"; // Recommendation page
+import Explore from "./explore/Explore"; // New Explore component
+
 
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
           <Route path="/hotel-booking" element={<HotelBookingPayment />} /> {/* Hotel Booking & Payment */}
           <Route path="/map" element={<MapComponent />} /> {/* Interactive Maps */}
           <Route path="/recommendations" element={<RecommendationComponent />} /> {/* Recommendations Page */}
+          <Route path="/explore" element={<Explore />} /> {/* Explore Page */}
         </Routes>
         {/* </AuthProvider> */}
       </GoogleOAuthProvider>

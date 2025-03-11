@@ -8,7 +8,7 @@ const DynamicRecommendations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch user trips from Firestore
+  // Fetch user trips from Firestore (unchanged)
   const fetchUserTrips = async () => {
     const userProfileStr = localStorage.getItem("googleProfile");
     if (!userProfileStr) {
@@ -24,7 +24,7 @@ const DynamicRecommendations = () => {
     return trips;
   };
 
-  // Compute distinct (normalized) trip types from trips
+  // Compute distinct (normalized) trip types from trips (unchanged)
   const computeDistinctTripTypes = (trips) => {
     const tripTypesSet = new Set();
     trips.forEach((trip) => {
@@ -37,7 +37,7 @@ const DynamicRecommendations = () => {
     return Array.from(tripTypesSet);
   };
 
-  // Call AI endpoint for a given trip type
+  // Call AI endpoint for a given trip type (unchanged)
   const fetchRecommendationsForType = async (tripType) => {
     const prompt = `List 10 diverse and exciting travel destinations known for their ${tripType} experiences. For each destination, provide a brief description.`;
     try {
@@ -52,7 +52,7 @@ const DynamicRecommendations = () => {
     }
   };
 
-  // Main effect: load trips, compute distinct types, then get AI recommendations for each type
+  // Main effect: load trips (unchanged)
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
@@ -79,14 +79,21 @@ const DynamicRecommendations = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl text-gray-700">
-        Loading recommendations...
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
+          <p className="text-lg font-medium text-gray-700">Curating your perfect recommendations...</p>
+        </div>
       </div>
     );
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl text-red-600">
-        Error: {error}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
+        <div className="text-center max-w-md p-6 rounded-xl bg-white shadow-lg">
+          <div className="text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
       </div>
     );
 
@@ -96,52 +103,90 @@ const DynamicRecommendations = () => {
 
   if (sortedCategories.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl text-gray-700">
-        No trip history found to generate recommendations.
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center max-w-md p-6">
+          <div className="text-6xl mb-6">🌍</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Let's Start Your Journey!</h2>
+          <p className="text-gray-600">No trip history found. Start planning your first adventure to get personalized recommendations!</p>
+        </div>
       </div>
     );
   }
 
+  // Emoji mapping for trip types
+  const typeEmojis = {
+    adventure: "🏔️",
+    beach: "🏖️",
+    cultural: "🏛️",
+    romantic: "💖",
+    family: "👨👩👧👦",
+    business: "💼",
+    // Add more mappings as needed
+  };
+
   return (
-    <div className="bg-gray-100 min-h-screen py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-bold text-center mb-10">
-          Personalized Travel Recommendations
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+<div className="max-w-7xl mx-auto">
+         {/* Header Section */}
+      <div className="text-center mb-16">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Your Personalized Travel Guide
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Discover destinations tailored to your travel personality and history
+        </p>
+      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedCategories.map(([type, recs]) => (
             <div
               key={type}
-              className="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200 hover:shadow-2xl transition-shadow duration-300"
+              className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-2 relative overflow-hidden"
             >
-              <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
-                <h3 className="text-2xl font-semibold text-gray-800 capitalize">
-                  {type} Experiences
-                </h3>
-              </div>
-              <div className="p-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 opacity-20"></div>
+              <div className="relative px-6 py-8">
+                <div className="flex items-center mb-6">
+                  <span className="text-3xl mr-3">
+                    {typeEmojis[type] || "✈️"}
+                  </span>
+                  <h3 className="text-xl font-semibold text-gray-900 capitalize">
+                    {type} Destinations
+                  </h3>
+                </div>
+                
                 {recs.length > 0 ? (
-                  <ul className="space-y-4">
+                  <ul className="space-y-5">
                     {recs.map((item, index) => (
                       <li
                         key={index}
-                        className="p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                        className="p-4 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-colors group/item relative"
                       >
-                        {typeof item === "object" ? (
-                          <>
-                            <div className="font-bold text-lg text-blue-600">
-                              {item.destination}
-                            </div>
-                            <div className="text-gray-600">{item.description}</div>
-                          </>
-                        ) : (
-                          <span className="text-gray-700">{item}</span>
-                        )}
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-0 group-hover/item:opacity-100 transition-opacity rounded-lg"></div>
+                        <div className="relative">
+                          {typeof item === "object" ? (
+                            <>
+                              <div className="flex items-start mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                                    {item.destination}
+                                  </h4>
+                                  <p className="text-gray-600 text-sm leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-gray-700">{item}</span>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500">No recommendations available for this category.</p>
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 italic">More recommendations coming soon!</p>
+                  </div>
                 )}
               </div>
             </div>

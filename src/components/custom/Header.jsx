@@ -9,7 +9,7 @@ const Header = () => {
   const [userProfile, setUserProfile] = useState(null);
   const navigate = useNavigate();
 
-  // Function to update state from localStorage
+  // Keep all existing state and logic the same
   const updateAuthState = () => {
     const storedToken = localStorage.getItem("authToken");
     const storedProfile = localStorage.getItem("googleProfile");
@@ -22,80 +22,68 @@ const Header = () => {
     }
   };
 
-  // Check auth state on mount
   useEffect(() => {
     updateAuthState();
   }, []);
 
-  // Listen for the custom "authChanged" event to update the auth state
   useEffect(() => {
-    const handleAuthChange = () => {
-      updateAuthState();
-    };
+    const handleAuthChange = () => updateAuthState();
     window.addEventListener("authChanged", handleAuthChange);
-    return () => {
-      window.removeEventListener("authChanged", handleAuthChange);
-    };
+    return () => window.removeEventListener("authChanged", handleAuthChange);
   }, []);
 
   const handleGoogleLoginSuccess = (tokenResponse) => {
-    // Fetch user profile using the access token from tokenResponse
     fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
       headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
     })
       .then((res) => res.json())
       .then((profile) => {
-        // Store the token and profile in localStorage
         localStorage.setItem("authToken", tokenResponse.access_token);
         localStorage.setItem("googleProfile", JSON.stringify(profile));
-        // Update local state immediately
         setIsAuthenticated(true);
         setUserProfile(profile);
-        // Dispatch a custom event so that other components know about the change
         window.dispatchEvent(new Event("authChanged"));
       })
       .catch((error) => console.error("Failed to fetch user profile", error));
   };
 
-  // Create a custom Google login function using the useGoogleLogin hook
   const login = useGoogleLogin({
     onSuccess: handleGoogleLoginSuccess,
     onError: () => console.error("Google login failed"),
   });
 
   const handleLogout = () => {
-    // Remove the token and profile from localStorage
     localStorage.removeItem("authToken");
     localStorage.removeItem("googleProfile");
-    // Update state to reflect logout
     setIsAuthenticated(false);
     setUserProfile(null);
-    // Dispatch a custom event so that any other component can update accordingly
     window.dispatchEvent(new Event("authChanged"));
-    // Redirect the user to the home page
     navigate("/");
   };
 
-  // Only show the "Trips" navigation link if authenticated.
   const navigationItems = isAuthenticated ? ["Trips"] : [];
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      <header className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50">
-        <nav className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-          {/* Logo Container with fixed size */}
-          <Link 
-            to="/" 
-            className="flex items-center w-32 h-16" // Fixed container size
-          >
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="w-full h-full object-contain transition-transform hover:scale-105"
-            />
-          </Link>
+      <header className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50 h-20"> {/* Header height */}
+    <nav className="flex justify-between items-center px-8 h-full max-w-7xl mx-auto">
+      {/* Logo Container */}
+      <Link 
+        to="/" 
+        className="flex items-center h-full" 
+      >
+        <img
+          src="/logo4.png"
+          alt="Logo"
+          className="h-full w-auto object-contain transition-all hover:scale-105"
+          style={{
+            filter: 'brightness(0) invert(1)',
+            WebkitFilter: 'brightness(0) invert(1)'
+          }}
+        />
+      </Link>
 
-          {/* Desktop Navigation */}
+          {/* Navigation Items */}
           {navigationItems.length > 0 && (
             <ul className="hidden md:flex gap-8 items-center">
               {navigationItems.map((item) => (
@@ -123,7 +111,7 @@ const Header = () => {
 
           {/* Mobile Menu */}
           {menuOpen && navigationItems.length > 0 && (
-            <div className="absolute top-full left-0 w-full bg-slate-800/95 backdrop-blur-sm md:hidden">
+            <div className="absolute top-20 left-0 w-full bg-slate-800/95 backdrop-blur-sm md:hidden"> {/* Changed top to 20 */}
               <ul className="flex flex-col items-center py-4 gap-4">
                 {navigationItems.map((item) => (
                   <li key={item} className="w-full text-center">
