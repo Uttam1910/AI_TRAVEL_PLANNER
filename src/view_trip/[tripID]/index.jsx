@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getTripDetails } from "../../service/firebaseConfig";
 import { ClipLoader } from "react-spinners";
 import { GetPlaceDetails } from "../../service/Globalapi";
+import pLimit from "p-limit"; // Import p-limit for concurrency control
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -87,55 +88,63 @@ const ViewTrip = () => {
           console.error("API key is missing");
           return;
         }
-        // Update hotel options with photos
+
+        // Create a concurrency limiter with a max of 5 concurrent requests
+        const limit = pLimit(5);
+
+        // Update hotel options concurrently without sequential delays
         const updatedHotels = await Promise.all(
-          tripDetails.hotelOptions.map(async (hotel, index) => {
-            await new Promise((resolve) => setTimeout(resolve, index * 1000));
-            try {
-              if (!hotel.hotelImageURL) {
-                const response = await GetPlaceDetails({ textQuery: hotel.name });
-                if (response?.data?.places?.length > 0) {
-                  const placeDetails = response.data.places[0];
-                  let photoUrl = "/default-hotel.jpg";
-                  if (placeDetails.photos?.length > 0) {
-                    const photoReference = placeDetails.photos[0].name;
-                    photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
-                  }
-                  return { ...hotel, hotelImageURL: photoUrl, googlePlaceDetails: placeDetails };
-                }
-              }
-              return hotel;
-            } catch (err) {
-              console.error(`Error fetching photo for hotel ${hotel.name}:`, err);
-              return hotel;
-            }
-          })
-        );
-        // Update itinerary activities with photos
-        const updatedItinerary = { ...tripDetails.itinerary };
-        for (const day in updatedItinerary) {
-          updatedItinerary[day].plan = await Promise.all(
-            (updatedItinerary[day].plan || []).map(async (activity, index) => {
-              await new Promise((resolve) => setTimeout(resolve, index * 1000));
+          tripDetails.hotelOptions.map((hotel) =>
+            limit(async () => {
               try {
-                if (!activity.imageUrl) {
-                  const response = await GetPlaceDetails({ textQuery: activity.activityName });
+                if (!hotel.hotelImageURL) {
+                  const response = await GetPlaceDetails({ textQuery: hotel.name });
                   if (response?.data?.places?.length > 0) {
                     const placeDetails = response.data.places[0];
-                    let photoUrl = "/default-activity.jpg";
+                    let photoUrl = "/default-hotel.jpg";
                     if (placeDetails.photos?.length > 0) {
+                      // Use the first available photo
                       const photoReference = placeDetails.photos[0].name;
                       photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
                     }
-                    return { ...activity, imageUrl: photoUrl, googlePlaceDetails: placeDetails };
+                    return { ...hotel, hotelImageURL: photoUrl, googlePlaceDetails: placeDetails };
                   }
                 }
-                return activity;
+                return hotel;
               } catch (err) {
-                console.error(`Error fetching photo for activity ${activity.activityName}:`, err);
-                return activity;
+                console.error(`Error fetching photo for hotel ${hotel.name}:`, err);
+                return hotel;
               }
             })
+          )
+        );
+
+        // Update itinerary activities concurrently without sequential delays
+        const updatedItinerary = { ...tripDetails.itinerary };
+        for (const day in updatedItinerary) {
+          updatedItinerary[day].plan = await Promise.all(
+            (updatedItinerary[day].plan || []).map((activity) =>
+              limit(async () => {
+                try {
+                  if (!activity.imageUrl) {
+                    const response = await GetPlaceDetails({ textQuery: activity.activityName });
+                    if (response?.data?.places?.length > 0) {
+                      const placeDetails = response.data.places[0];
+                      let photoUrl = "/default-activity.jpg";
+                      if (placeDetails.photos?.length > 0) {
+                        const photoReference = placeDetails.photos[0].name;
+                        photoUrl = `https://places.googleapis.com/v1/${photoReference}/media?key=${import.meta.env.VITE_GOOGLE_API_KEY}&maxHeightPx=400`;
+                      }
+                      return { ...activity, imageUrl: photoUrl, googlePlaceDetails: placeDetails };
+                    }
+                  }
+                  return activity;
+                } catch (err) {
+                  console.error(`Error fetching photo for activity ${activity.activityName}:`, err);
+                  return activity;
+                }
+              })
+            )
           );
         }
         setTripDetails(prev => ({
@@ -148,6 +157,7 @@ const ViewTrip = () => {
         console.error("Error in fetching place details for hotels/itinerary:", err);
       }
     };
+
     if (
       !detailsFetched &&
       (tripDetails.hotelOptions.length > 0 || Object.keys(tripDetails.itinerary).length > 0)
@@ -313,6 +323,8 @@ const ViewTrip = () => {
         <img
           src={tripDetails.tripDetails.tripPhotoURL || "/default-destination.jpg"}
           alt="Destination"
+          loading="lazy" // Enable lazy loading for better performance
+          onError={(e) => { e.target.onerror = null; e.target.src = "/default-destination.jpg"; }}
           className="w-full h-96 object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center">
@@ -442,6 +454,8 @@ const ViewTrip = () => {
                       <img
                         src={hotel.hotelImageURL || "/default-hotel.jpg"}
                         alt={hotel.name}
+                        loading="lazy" // Lazy load image
+                        onError={(e) => { e.target.onerror = null; e.target.src = "/default-hotel.jpg"; }}
                         className="w-full h-48 object-cover rounded-lg mb-4"
                       />
                       <h4 className="text-2xl font-semibold text-gray-800 mb-2">{hotel.name}</h4>
@@ -489,6 +503,8 @@ const ViewTrip = () => {
                             <img
                               src={activity.imageUrl || "/default-activity.jpg"}
                               alt={activity.activityName}
+                              loading="lazy" // Lazy load image
+                              onError={(e) => { e.target.onerror = null; e.target.src = "/default-activity.jpg"; }}
                               className="w-full h-48 object-cover rounded-lg"
                             />
                           </div>
