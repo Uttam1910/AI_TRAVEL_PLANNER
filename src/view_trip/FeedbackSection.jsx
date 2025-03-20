@@ -1,8 +1,8 @@
-// FeedbackSection.jsx
 import React, { useState } from "react";
 import { FaStar } from "react-icons/fa";
+import { saveFeedback } from "../service/firebaseConfig"; // Adjust the path as necessary
 
-const FeedbackSection = ({ tripId, onFeedbackSubmit }) => {
+const FeedbackSection = ({ tripId }) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -10,9 +10,8 @@ const FeedbackSection = ({ tripId, onFeedbackSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Trigger your backend API call via the provided callback
     try {
-      await onFeedbackSubmit({ tripId, rating, comment });
+      await saveFeedback({ tripId, rating, comment });
       setSubmitted(true);
     } catch (error) {
       console.error("Error submitting feedback:", error);
@@ -47,7 +46,7 @@ const FeedbackSection = ({ tripId, onFeedbackSubmit }) => {
       <textarea
         className="w-full border border-gray-300 p-3 rounded-lg mb-4"
         rows="4"
-        placeholder="Tell us about your experience, suggestions, or any issues you faced."
+        placeholder="Tell us about your experience or suggestions..."
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       ></textarea>
