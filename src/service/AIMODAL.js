@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { admin, dbFirebase } = require("./firebaseAdmin");
 
 // Additional packages for image processing integration
 const multer = require("multer");
@@ -265,6 +266,35 @@ const hotelsRoutes = require("./routes/hotelsRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 app.use("/api", hotelsRoutes);
 app.use("/api", bookingRoutes);
+
+
+// -------------------------
+// Feedback Endpoint
+// -------------------------
+app.post("/api/feedback", async (req, res) => {
+  try {
+    const { tripId, rating, comment } = req.body;
+    if (!rating) {
+      return res.status(400).json({ error: "Rating is required" });
+    }
+    // Prepare the feedback data
+    const feedbackData = {
+      tripId: tripId || null,
+      rating,
+      comment: comment || "",
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Save feedback to Firestore in a "feedback" collection
+    const docRef = await dbFirebase.collection("feedback").add(feedbackData);
+    res.status(200).json({ message: "Feedback submitted", id: docRef.id });
+  } catch (error) {
+    console.error("Error storing feedback:", error);
+    res.status(500).json({ error: "Failed to store feedback" });
+  }
+});
+
+
 
 // -------------------------
 // Dummy Payment Endpoint

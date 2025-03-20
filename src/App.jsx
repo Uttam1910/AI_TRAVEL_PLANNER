@@ -13,7 +13,7 @@ import HotelBookingPayment from "./hotelbooking/HotelBookingPayment";
 import MapComponent from "./maps/MapComponent"; // Interactive Maps component
 import RecommendationComponent from "./recommendations/RecommendationComponent"; // Recommendation page
 import Explore from "./explore/Explore"; // New Explore component
-
+import FeedbackModal from "./view_trip/FeedbackSection"; // Import the global feedback modal
 
 function App() {
   return (
@@ -45,6 +45,7 @@ function App() {
           <Route path="/recommendations" element={<RecommendationComponent />} /> {/* Recommendations Page */}
           <Route path="/explore" element={<Explore />} /> {/* Explore Page */}
         </Routes>
+        <FeedbackModal />
         {/* </AuthProvider> */}
       </GoogleOAuthProvider>
     </div>

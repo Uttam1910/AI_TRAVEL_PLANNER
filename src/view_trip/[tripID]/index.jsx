@@ -4,6 +4,7 @@ import { getTripDetails } from "../../service/firebaseConfig";
 import { ClipLoader } from "react-spinners";
 import { GetPlaceDetails } from "../../service/Globalapi";
 import pLimit from "p-limit"; // Import p-limit for concurrency control
+import FeedbackSection from "../FeedbackSection";
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -541,6 +542,35 @@ const ViewTrip = () => {
           {tripDetails.diningSuggestions?.length > 0 && renderDiningSuggestions()}
           {tripDetails.budgetEstimate && Object.keys(tripDetails.budgetEstimate).length > 0 && renderBudgetEstimate()}
           {tripDetails.additionalTips?.length > 0 && renderAdditionalTips()}
+
+
+
+
+          
+  {/* Feedback Section */}
+  <FeedbackSection
+    tripId={tripId}
+    onFeedbackSubmit={async (feedbackData) => {
+      // Example API call to your Express backend to save the feedback in Firebase
+      // Replace with your actual API integration code
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(feedbackData),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to submit feedback");
+        }
+      } catch (err) {
+        console.error("Feedback submission error:", err);
+      }
+    }}
+  />
+
+
+
+
 
           <div className="mt-12 text-center">
             <button onClick={() => navigate("/")} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all">
