@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { admin, dbFirebase } = require("./firebaseAdmin");
 
 // Additional packages for image processing integration
 const multer = require("multer");
@@ -267,35 +266,6 @@ const bookingRoutes = require("./routes/bookingRoutes");
 app.use("/api", hotelsRoutes);
 app.use("/api", bookingRoutes);
 
-
-// -------------------------
-// Feedback Endpoint
-// -------------------------
-app.post("/api/feedback", async (req, res) => {
-  try {
-    const { tripId, rating, comment } = req.body;
-    if (!rating) {
-      return res.status(400).json({ error: "Rating is required" });
-    }
-    // Prepare the feedback data
-    const feedbackData = {
-      tripId: tripId || null,
-      rating,
-      comment: comment || "",
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    // Save feedback to Firestore in a "feedback" collection
-    const docRef = await dbFirebase.collection("feedback").add(feedbackData);
-    res.status(200).json({ message: "Feedback submitted", id: docRef.id });
-  } catch (error) {
-    console.error("Error storing feedback:", error);
-    res.status(500).json({ error: "Failed to store feedback" });
-  }
-});
-
-
-
 // -------------------------
 // Dummy Payment Endpoint
 // -------------------------
@@ -309,6 +279,67 @@ app.get("/plans/:id", (req, res) => {
 app.post("/plans/save", (req, res) => {
   res.status(501).json({ error: "Not implemented" });
 });
+
+
+
+
+
+
+
+
+
+
+
+// Add near other routes but before fallback handler
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { tripId, rating, userId, comment = '', emoji = '😐', tags = [] } = req.body;
+
+    // Validation
+    if (!tripId || !userId || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Save to Firestore
+    const docRef = await admin.firestore().collection('feedback').add({
+      tripId,
+      userId,
+      rating: Number(rating),
+      comment: comment.substring(0, 500),
+      emoji,
+      tags: tags.slice(0, 5),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.status(201).json({
+      id: docRef.id,
+      success: true,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Feedback Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to save feedback',
+      code: 'FEEDBACK_SAVE_ERROR'
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Fallback for undefined endpoints
 app.use((req, res) => {

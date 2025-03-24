@@ -14,8 +14,9 @@ logging.basicConfig(level=logging.INFO)
 # Install caching for external requests (cache expires in 1 hour)
 requests_cache.install_cache('api_cache', backend='sqlite', expire_after=3600)
 
-# Set Google Cloud Vision credentials
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "service-account.json")
+# Set Google Cloud Vision credentials using the correct file name (service-account.json)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, "service-account.json")
 
 def get_wikidata_info(wikidata_id):
     """Fetch structured data from Wikidata"""
@@ -131,7 +132,7 @@ def analyze_image():
         landmark = landmarks[0]
         landmark_name = landmark.description
         locations = [{"latitude": loc.lat_lng.latitude, "longitude": loc.lat_lng.longitude}
-                    for loc in landmark.locations if loc.lat_lng]
+                     for loc in landmark.locations if loc.lat_lng]
 
         # Fetch Wikipedia data
         wiki_data = {}

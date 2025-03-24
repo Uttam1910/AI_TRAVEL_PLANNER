@@ -97,13 +97,13 @@
 
 
 
-// firebaseConfig.js
-
 // Import necessary Firebase functions
 import { initializeApp } from "firebase/app";  // Initializes the Firebase app
 import { getFirestore, collection, addDoc } from "firebase/firestore";  // Imports Firestore functions for database interactions
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Import Firestore functions for specific document interactions
+import { doc, getDoc, setDoc  } from "firebase/firestore"; // Import Firestore functions
 import { query, where, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+// const admin = require('firebase-admin');
 
 // Firebase configuration values loaded from environment variables (.env file)
 const firebaseConfig = {
@@ -119,16 +119,17 @@ const firebaseConfig = {
 // Initialize Firebase with the provided configuration
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore for database operations
+// Initialize services
+const auth = getAuth(app);
 const db = getFirestore(app);
 
-/**
- * Save trip details into the "trips" collection.
- */
+// Export services
+export { auth, db }; // Add this line
+
 export const saveTripDetails = async (tripData, tripId) => {
   try {
-    // Retrieve user details from local storage (assumes the details are stored as a JSON string under the key "googleProfile")
-    const userDetailsStr = localStorage.getItem("googleProfile");
+    // Retrieve user details from local storage (assumes the details are stored as a JSON string under the key "userDetail")
+    const userDetailsStr = localStorage.getItem('googleProfile');
     if (userDetailsStr) {
       // Parse the JSON string to an object and add it to the trip data
       const userDetails = JSON.parse(userDetailsStr);
@@ -149,9 +150,10 @@ export const saveTripDetails = async (tripData, tripId) => {
   }
 };
 
-/**
- * Function to fetch trip details by tripId.
- */
+
+
+
+// Function to fetch trip details by tripId
 export const getTripDetails = async (tripId) => {
   try {
     // Reference to the specific trip document using the tripId
@@ -172,10 +174,10 @@ export const getTripDetails = async (tripId) => {
   }
 };
 
-/**
- * Function to fetch all trips for a specific user (by user ID).
- * It assumes that each trip document stores user details in the "userDetails" field with an "id" property.
- */
+
+
+// Function to fetch all trips for a specific user (by user ID)
+// It assumes that each trip document stores user details in the "userDetails" field with an "id" property.
 export const getUserTrips = async (userId) => {
   try {
     const tripsRef = collection(db, "trips");
@@ -193,30 +195,24 @@ export const getUserTrips = async (userId) => {
   }
 };
 
-/**
- * Function to save user feedback into the "feedback" collection.
- *
- * @param {Object} feedbackData - An object containing feedback data.
- *        Expected fields: tripId (optional), rating (required), comment (optional)
- */
-export const saveFeedback = async (feedbackData) => {
+
+
+
+// Your existing exports
+export const saveFeedback = async (feedback) => {
   try {
-    // Optionally attach user details from local storage if available
-    const userDetailsStr = localStorage.getItem("googleProfile");
-    if (userDetailsStr) {
-      const userDetails = JSON.parse(userDetailsStr);
-      feedbackData.userDetails = userDetails;
-    }
-
-    // Add a timestamp to the feedback
-    feedbackData.timestamp = new Date();
-
-    // Save the feedback data in the "feedback" collection
-    const docRef = await addDoc(collection(db, "feedback"), feedbackData);
-    console.log("Feedback saved with ID: ", docRef.id);
-    return docRef.id;
-  } catch (e) {
-    console.error("Error adding feedback: ", e);
-    throw e;
+    const response = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(feedback)
+    });
+    
+    if (!response.ok) throw new Error('Server error');
+    return await response.json();
+    
+  } catch (error) {
+    const localId = `local-${Date.now()}`;
+    localStorage.setItem(`feedback-${feedback.tripId}-${localId}`, JSON.stringify(feedback));
+    return { id: localId, local: true };
   }
 };
