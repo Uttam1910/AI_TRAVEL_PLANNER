@@ -387,7 +387,7 @@ const GoogleGlobe = () => {
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
       {/* Sidebar */}
       <div style={sidebarStyle}>
-        <h2 style={{ marginTop: '0', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>Map Controls</h2>
+        <h2 style={{ marginTop: '0', borderBottom: '1px solid #ccc', paddingBottom: '10px', paddingTop: '80px' }}>Map Controls</h2>
         <div style={{ marginBottom: '15px' }}>
           <button onClick={handleLocateMe} style={controlButtonStyle}>Locate Me</button>
           <button onClick={() => setShowTraffic(!showTraffic)} style={controlButtonStyle}>

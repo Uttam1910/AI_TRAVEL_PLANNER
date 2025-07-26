@@ -157,7 +157,7 @@ const FeedbackSection = ({ trip, currentUser }) => { // Add currentUser prop
         {saveStatus === 'local' && (
           <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg">
             <AlertCircle className="w-5 h-5" />
-            <span>Saved locally (offline)</span>
+            <span>Saved feedback</span>
           </div>
         )}
       </div>
