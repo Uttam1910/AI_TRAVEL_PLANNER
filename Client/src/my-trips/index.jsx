@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestore } from "firebase/firestore";
-import { GetPlaceDetails } from "../service/GlobalApi"; // Import the Google Places API function
+import { GetPlaceDetails } from "../GlobalApi"; // Import the Google Places API function
 
 const TripsHistory = () => {
   const [trips, setTrips] = useState([]);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, Send, Save, AlertCircle } from 'react-feather';
-import { saveFeedback } from '../service/firebaseConfig'; // Add this import
+import { saveFeedback } from '../firebaseConfig'; // Add this import
 
 const FeedbackSection = ({ trip, currentUser }) => { // Add currentUser prop
   const [rating, setRating] = useState(0);

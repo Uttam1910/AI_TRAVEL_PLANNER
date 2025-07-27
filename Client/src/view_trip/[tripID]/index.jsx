@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getTripDetails } from "../../service/firebaseConfig";
+import { getTripDetails } from "../../firebaseConfig";
 import { ClipLoader } from "react-spinners";
-import { GetPlaceDetails } from "../../service/Globalapi";
+import { GetPlaceDetails } from "../../GlobalApi";
 import pLimit from "p-limit"; // Import p-limit for concurrency control
 import FeedbackSection from "../FeedbackSection";
-import { auth } from '../../service/firebaseConfig'; // Path to your Firebase config
+import { auth } from '../../firebaseConfig'; // Path to your Firebase config
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,

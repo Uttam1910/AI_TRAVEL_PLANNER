@@ -28,7 +28,7 @@ import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import Modal from "react-modal";
-import { saveTripDetails } from "../service/firebaseConfig";
+import { saveTripDetails } from "../firebaseConfig";
 import { ClipLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";

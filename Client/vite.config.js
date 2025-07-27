@@ -1,6 +1,6 @@
-import path from "path"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import path from "path";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
@@ -18,5 +18,7 @@ export default defineConfig({
       },
     },
   },
-})
-
+  optimizeDeps: {
+    include: ["firebase/firestore"], // ✅ Force include Firestore to avoid tree-shaking
+  },
+});
