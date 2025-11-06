@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { FaBars, FaTimes, FaUserCircle, FaGoogle } from "react-icons/fa";
@@ -65,7 +66,12 @@ const Header = () => {
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      <header className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50 h-20"> {/* Header height */}
+      <motion.header
+        initial={{ y: -16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50 h-20"
+      > {/* Header height */}
     <nav className="flex justify-between items-center px-8 h-full max-w-7xl mx-auto">
       {/* Logo Container */}
       <Link 
@@ -161,7 +167,7 @@ const Header = () => {
             )}
           </div>
         </nav>
-      </header>
+      </motion.header>
     </GoogleOAuthProvider>
   );
 };

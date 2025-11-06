@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
@@ -15,7 +16,12 @@ const Hero = () => {
     <section className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 text-white py-24 px-6 min-h-screen flex items-center">
       <div className="max-w-7xl mx-auto text-center">
         {/* Heading */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-8">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-8"
+        >
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
             Craft Your Perfect Journey
           </span>
@@ -23,20 +29,32 @@ const Hero = () => {
           <span className="text-2xl sm:text-3xl md:text-4xl font-light mt-4 block">
             Intelligent Travel Planning Made Simple
           </span>
-        </h1>
+        </motion.h1>
 
         {/* Subtitle */}
-        <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+          className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed"
+        >
           Leverage AI-powered insights, real-time collaboration, and smart itinerary tools to 
           create unforgettable travel experiences. 
           <span className="block mt-3 text-blue-200 font-medium">
             Your adventure starts here – explore smarter, travel better.
           </span>
-        </p>
+        </motion.p>
 
         {/* Primary Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-          <button
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+          className="flex flex-col sm:flex-row justify-center gap-4 mb-16"
+        >
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleGetStartedClick}
             className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-4 px-8 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
           >
@@ -44,24 +62,33 @@ const Hero = () => {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
             </svg>
             Start Planning Now
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleExploreClick} // Clicking this navigates to the Explore section
             className="border-2 border-blue-400 text-blue-100 font-medium py-4 px-8 rounded-lg hover:bg-blue-500/10 transition-all duration-300 hover:scale-[1.02]"
           >
             Discover Destinations
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           {[
             { title: "AI Recommendations", icon: "🤖", action: handleRecommendationsClick },
             { title: "Smart Maps", icon: "🌍", action: handleExploreClick }, // Also navigates to Explore
             { title: "Booking Integration", icon: "📅", action: handleBookingClick },
             { title: "Landmark Analysis", icon: "🔍", action: handleLandmarkClick },
           ].map((feature, idx) => (
-            <div 
+            <motion.div 
+              whileHover={{ y: -3 }}
+              variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
               key={idx}
               onClick={feature.action}
               className="group relative bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10 hover:border-blue-400/50 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl"
@@ -81,9 +108,9 @@ const Hero = () => {
                   ][idx]}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
