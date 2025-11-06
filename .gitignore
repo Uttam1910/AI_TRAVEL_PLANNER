@@ -1,0 +1,24 @@
+# Node and frontend
+Client/node_modules/
+service/node_modules/
+Client/dist/
+
+# Python
+python/__pycache__/
+
+# Caches and databases
+**/*.sqlite
+
+# Logs and env
+*.log
+.env
+.env.*
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+
+# Secrets
+**/service-account.json
+
+
