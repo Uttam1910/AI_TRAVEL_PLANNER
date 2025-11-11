@@ -70,26 +70,24 @@ const Header = () => {
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50 h-20"
-      > {/* Header height */}
-    <nav className="flex justify-between items-center px-8 h-full max-w-7xl mx-auto">
-      {/* Logo Container */}
-      <Link 
-        to="/" 
-        className="flex items-center h-full" 
-      >
-        <img
-          src="/logo4.png"
-          alt="Logo"
-          className="h-full w-auto object-contain transition-all hover:scale-105"
-          style={{
-            filter: 'brightness(0) invert(1)',
-            WebkitFilter: 'brightness(0) invert(1)'
-          }}
-        />
-      </Link>
+        className="bg-gradient-to-br from-slate-900 to-indigo-900/80 backdrop-blur-md border-b border-white/10 fixed w-full top-0 z-50"
+      > {/* Header */}
+        <nav aria-label="Primary navigation" className="flex justify-between items-center px-6 sm:px-8 h-20 max-w-7xl mx-auto">
+          {/* Logo Container */}
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src="/logo4.png"
+              alt="Logo"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 hover:scale-105"
+              style={{
+                filter: 'brightness(0) invert(1)',
+                WebkitFilter: 'brightness(0) invert(1)'
+              }}
+            />
+            <span className="sr-only">AI Travel Planner</span>
+          </Link>
 
-          {/* Navigation Items */}
+          {/* Navigation Items (desktop) */}
           {navigationItems.length > 0 && (
             <ul className="hidden md:flex gap-8 items-center">
               {navigationItems.map((item) => (
@@ -108,16 +106,19 @@ const Header = () => {
           {/* Mobile Menu Toggle */}
           {navigationItems.length > 0 && (
             <button
+              aria-controls="mobile-menu"
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               className="md:hidden p-2 text-gray-300 hover:text-blue-400 transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
             >
-              {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              {menuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
             </button>
           )}
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu (overlay) */}
           {menuOpen && navigationItems.length > 0 && (
-            <div className="absolute top-20 left-0 w-full bg-slate-800/95 backdrop-blur-sm md:hidden"> {/* Changed top to 20 */}
+            <div id="mobile-menu" role="menu" aria-hidden={!menuOpen} className="absolute top-20 left-0 w-full bg-slate-800/95 backdrop-blur-sm md:hidden">
               <ul className="flex flex-col items-center py-4 gap-4">
                 {navigationItems.map((item) => (
                   <li key={item} className="w-full text-center">
@@ -151,7 +152,7 @@ const Header = () => {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="bg-white/5 border border-white/10 text-gray-300 px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm"
+                  className="bg-white/5 border border-white/10 text-gray-300 px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm text-sm"
                 >
                   Logout
                 </button>
@@ -159,10 +160,10 @@ const Header = () => {
             ) : (
               <button
                 onClick={() => login()}
-                className="flex items-center gap-3 bg-white/5 border border-white/10 text-gray-300 px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm"
+                className="flex items-center gap-3 bg-white/5 border border-white/10 text-gray-300 px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-white transition-all duration-300 shadow-sm text-sm"
               >
                 <FaGoogle className="text-blue-400" />
-                Sign In
+                <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
           </div>

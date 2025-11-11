@@ -5,112 +5,101 @@ import { useNavigate } from "react-router-dom";
 const Hero = () => {
   const navigate = useNavigate();
 
-  // Navigation handlers
   const handleGetStartedClick = () => navigate("/create-trip");
-  const handleExploreClick = () => navigate("/explore"); // Navigates to the Explore section
+  const handleExploreClick = () => navigate("/explore");
   const handleLandmarkClick = () => navigate("/landmark");
   const handleBookingClick = () => navigate("/hotel-booking");
   const handleRecommendationsClick = () => navigate("/recommendations");
 
+  const features = [
+    { title: "AI Recommendations", desc: "Personalized trip planning powered by advanced AI", icon: "🤖", action: handleRecommendationsClick },
+    { title: "Smart Maps", desc: "Interactive maps with real-time travel insights", icon: "🌍", action: handleExploreClick },
+    { title: "Booking Integration", desc: "Integrated booking system for seamless reservations", icon: "📅", action: handleBookingClick },
+    { title: "Landmark Analysis", desc: "Image analysis for landmark recognition", icon: "🔍", action: handleLandmarkClick },
+  ];
+
   return (
-    <section className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 text-white py-24 px-6 min-h-screen flex items-center">
-      <div className="max-w-7xl mx-auto text-center">
-        {/* Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-8"
-        >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
-            Craft Your Perfect Journey
-          </span>
-          <br className="hidden md:block" />
-          <span className="text-2xl sm:text-3xl md:text-4xl font-light mt-4 block">
-            Intelligent Travel Planning Made Simple
-          </span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.05 }}
-          className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed"
-        >
-          Leverage AI-powered insights, real-time collaboration, and smart itinerary tools to 
-          create unforgettable travel experiences. 
-          <span className="block mt-3 text-blue-200 font-medium">
-            Your adventure starts here – explore smarter, travel better.
-          </span>
-        </motion.p>
-
-        {/* Primary Action Buttons */}
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
-          className="flex flex-col sm:flex-row justify-center gap-4 mb-16"
-        >
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleGetStartedClick}
-            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-4 px-8 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+    <section aria-label="Hero" className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white py-12 md:py-20 px-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left: Heading & CTAs */}
+        <div className="order-2 lg:order-1 text-center lg:text-left">
+          <motion.h1
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-            </svg>
-            Start Planning Now
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleExploreClick} // Clicking this navigates to the Explore section
-            className="border-2 border-blue-400 text-blue-100 font-medium py-4 px-8 rounded-lg hover:bg-blue-500/10 transition-all duration-300 hover:scale-[1.02]"
-          >
-            Discover Destinations
-          </motion.button>
-        </motion.div>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+              Craft Your Perfect Journey
+            </span>
+          </motion.h1>
 
-        {/* Feature Cards Grid */}
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {[
-            { title: "AI Recommendations", icon: "🤖", action: handleRecommendationsClick },
-            { title: "Smart Maps", icon: "🌍", action: handleExploreClick }, // Also navigates to Explore
-            { title: "Booking Integration", icon: "📅", action: handleBookingClick },
-            { title: "Landmark Analysis", icon: "🔍", action: handleLandmarkClick },
-          ].map((feature, idx) => (
-            <motion.div 
-              whileHover={{ y: -3 }}
-              variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
-              key={idx}
-              onClick={feature.action}
-              className="group relative bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10 hover:border-blue-400/50 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl"
+          <motion.p
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, delay: 0.05 }}
+            className="text-lg md:text-xl text-gray-300 max-w-2xl mb-6 mx-auto lg:mx-0"
+          >
+            Intelligent travel planning made simple — AI-powered suggestions, real-time maps, and seamless booking all in one place.
+          </motion.p>
+
+          <div className="flex flex-col sm:flex-row sm:justify-start gap-4 mb-6">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleGetStartedClick}
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-              <div className="relative z-10">
-                <div className="w-12 h-12 mb-4 mx-auto bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white text-xl">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  {[
-                    "Personalized trip planning powered by advanced AI",
-                    "Interactive maps with real-time travel insights",
-                    "Integrated booking system for seamless reservations",
-                    "Image analysis for landmark recognition"
-                  ][idx]}
-                </p>
+              Start Planning Now
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleExploreClick}
+              className="border border-white/20 text-white/90 font-medium py-3 px-6 rounded-lg hover:bg-white/5 transition-all duration-300"
+            >
+              Discover Destinations
+            </motion.button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-w-md mx-auto lg:mx-0">
+            {features.slice(0, 2).map((f, i) => (
+              <div key={i} className="p-3 bg-white/5 rounded-lg">
+                <h4 className="font-semibold text-white">{f.title}</h4>
+                <p className="text-xs text-gray-300">{f.desc}</p>
               </div>
-            </motion.div>
-          ))}
-        </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Feature grid */}
+        <div className="order-1 lg:order-2">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          >
+            {features.map((feature, idx) => (
+              <button
+                key={idx}
+                onClick={feature.action}
+                className="group relative bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10 hover:border-blue-400/50 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl text-left h-56 flex flex-col justify-center"
+                aria-label={feature.title}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 mb-4 mx-auto sm:mx-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white text-xl">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-300 leading-relaxed">{feature.desc}</p>
+                </div>
+              </button>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </section>
   );

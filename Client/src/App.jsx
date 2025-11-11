@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./components/custom/Header"; // Header component
+import Footer from "./components/custom/Footer";
 import Hero from "./components/custom/Hero"; // Hero component for landing page
 import "./App.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -31,7 +32,7 @@ function App() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen flex flex-col bg-transparent pt-20">
       <GoogleOAuthProvider
         clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}
       >
@@ -41,6 +42,7 @@ function App() {
         <Header />
 
         {/* Application Content */}
+        <main className="flex-1">
         <AnimatePresence mode="wait">
           <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading…</div>}>
             <Routes location={location} key={location.pathname}>
@@ -61,10 +63,12 @@ function App() {
               <Route path="/recommendations" element={<Page><RecommendationComponent /></Page>} /> {/* Recommendations Page */}
               <Route path="/explore" element={<Page><Explore /></Page>} /> {/* Explore Page */}
             </Routes>
-          </Suspense>
-        </AnimatePresence>
-        {/* <FeedbackModal /> */}
-        {/* </AuthProvider> */}
+    </Suspense>
+  </AnimatePresence>
+  </main>
+  <Footer />
+  {/* <FeedbackModal /> */}
+  {/* </AuthProvider> */}
       </GoogleOAuthProvider>
     </div>
   );

@@ -4,9 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getTripDetails } from "../../firebaseConfig";
 import { ClipLoader } from "react-spinners";
 import { GetPlaceDetails } from "../../GlobalApi";
-import pLimit from "p-limit"; // Import p-limit for concurrency control
+import { motion } from "framer-motion";
+import pLimit from "p-limit";
 import FeedbackSection from "../FeedbackSection";
-import { auth } from '../../firebaseConfig'; // Path to your Firebase config
+import { auth } from '../../firebaseConfig';
+import { format } from 'date-fns'; // Path to your Firebase config
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -204,23 +206,47 @@ const ViewTrip = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <ClipLoader size={50} color="#1d4ed8" />
-        <p className="text-gray-500 ml-3">Loading trip details...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex justify-center items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center"
+        >
+          <ClipLoader size={60} color="#4F46E5" />
+          <p className="text-gray-700 font-medium mt-4 text-lg">Loading your adventure...</p>
+          <p className="text-gray-500 text-sm mt-2">Preparing your travel details</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500 text-xl">{error}</p>
-        <button
-          onClick={() => navigate("/")}
-          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex justify-center items-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full"
         >
-          Go Back
-        </button>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Trip</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => navigate("/")}
+              className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Return Home
+            </button>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -357,35 +383,55 @@ const ViewTrip = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative">
-        <img
-          src={
-            tripDetails.tripDetails.tripPhotoURL || "/default-destination.jpg"
-          }
-          alt="Destination"
-          loading="lazy" // Enable lazy loading for better performance
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/default-destination.jpg";
-          }}
-          className="w-full h-96 object-cover"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center">
-          <h1 className="text-4xl font-bold text-white">
-            {tripDetails.tripDetails.location || "Destination"}
-          </h1>
-          <p className="text-lg text-white mt-2">
-            {tripDetails.tripDetails.startDate
-              ? `Travel Date: ${tripDetails.tripDetails.startDate}`
-              : ""}
-          </p>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Hero Section with Animation */}
+      <motion.section 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="relative h-[70vh] overflow-hidden rounded-b-[2.5rem] shadow-2xl"
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.img
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.2 }}
+            src={tripDetails.tripDetails.tripPhotoURL || "/default-destination.jpg"}
+            alt="Destination"
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/default-destination.jpg";
+            }}
+            className="w-full h-full object-cover"
+          />
         </div>
-      </section>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70 flex flex-col justify-center items-center">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-center px-4"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+              {tripDetails.tripDetails.location || "Destination"}
+            </h1>
+            <p className="text-xl text-white/90 mt-2 font-medium">
+              {tripDetails.tripDetails.startDate
+                ? format(new Date(tripDetails.tripDetails.startDate), "MMMM dd, yyyy")
+                : ""}
+            </p>
+          </motion.div>
+        </div>
+      </motion.section>
 
-      <section className="bg-gray-50 py-12 px-6 flex-grow">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-12 px-6 flex-grow relative">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="max-w-7xl mx-auto"
+        >
           {/* Trip Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {/* Summary cards */}
@@ -510,124 +556,218 @@ const ViewTrip = () => {
           </div>
 
           {/* Hotel Options Section */}
-          <div className="mt-12">
-            <h3 className="text-3xl font-bold text-blue-700 mb-6">
-              Hotel Options
-            </h3>
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-16"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Places to Stay
+              </h3>
+              <div className="h-1 flex-grow ml-6 bg-gradient-to-r from-blue-600/20 to-transparent rounded-full" />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {tripDetails.hotelOptions &&
               tripDetails.hotelOptions.length > 0 ? (
                 tripDetails.hotelOptions.map((hotel, index) => {
                   const hotelMapLink = getHotelMapLink(hotel);
                   return (
-                    <div
+                    <motion.div
                       key={index}
-                      className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ y: -5 }}
+                      className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
-                      <img
-                        src={hotel.hotelImageURL || "/default-hotel.jpg"}
-                        alt={hotel.name}
-                        loading="lazy" // Lazy load image
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/default-hotel.jpg";
-                        }}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
-                      <h4 className="text-2xl font-semibold text-gray-800 mb-2">
-                        {hotel.name}
-                      </h4>
-                      <p className="text-gray-600 mb-2 flex items-center">
-                        <FaMapMarkerAlt className="mr-2" /> {hotel.address}
-                      </p>
-                      <p className="text-gray-600 mb-2 flex items-center">
-                        <FaDollarSign className="mr-2" /> {hotel.priceEstimate}
-                      </p>
-                      <p className="text-gray-600 mb-4 flex items-center">
-                        <FaStar className="mr-2 text-yellow-500" /> Rating:{" "}
-                        {hotel.rating}
-                      </p>
-                      <a
-                        href={hotelMapLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
-                      >
-                        <FaMap className="mr-2" /> View on Map
-                      </a>
-                    </div>
+                      <div className="relative">
+                        <img
+                          src={hotel.hotelImageURL || "/default-hotel.jpg"}
+                          alt={hotel.name}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/default-hotel.jpg";
+                          }}
+                          className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute top-4 right-4">
+                          <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center shadow-lg">
+                            <FaStar className="text-yellow-500 mr-1" />
+                            <span className="font-semibold">{hotel.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <h4 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                          {hotel.name}
+                        </h4>
+                        
+                        <div className="space-y-2 mb-4">
+                          <p className="text-gray-600 flex items-center">
+                            <FaMapMarkerAlt className="text-blue-500 mr-2 flex-shrink-0" />
+                            <span className="line-clamp-1">{hotel.address}</span>
+                          </p>
+                          <p className="text-gray-600 flex items-center">
+                            <FaDollarSign className="text-blue-500 mr-2 flex-shrink-0" />
+                            <span>{hotel.priceEstimate}</span>
+                          </p>
+                        </div>
+
+                        <a
+                          href={hotelMapLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors group"
+                        >
+                          <FaMap className="mr-2 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">View on Map</span>
+                        </a>
+                      </div>
+                    </motion.div>
                   );
                 })
               ) : (
-                <p className="text-gray-600 text-lg">
-                  No hotel options available.
-                </p>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-full"
+                >
+                  <div className="text-center bg-white rounded-2xl p-8 shadow-md">
+                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaHotel className="text-blue-500 text-2xl" />
+                    </div>
+                    <p className="text-gray-600 text-lg">
+                      No hotel options available at the moment.
+                    </p>
+                  </div>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Itinerary Section */}
-          <div className="mt-12">
-            <h3 className="text-3xl font-bold text-blue-700 mb-6">Itinerary</h3>
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-16"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Your Journey
+              </h3>
+              <div className="h-1 flex-grow ml-6 bg-gradient-to-r from-indigo-600/20 to-transparent rounded-full" />
+            </div>
+            
             {sortedItineraryDays.length > 0 ? (
-              sortedItineraryDays.map(([day, dayPlan]) => (
-                <div key={day} className="mb-8">
-                  <h4 className="text-2xl font-bold text-gray-800 mb-4">
-                    {day.toUpperCase()} - {dayPlan.title}
-                  </h4>
+              sortedItineraryDays.map(([day, dayPlan], dayIndex) => (
+                <motion.div
+                  key={day}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 * dayIndex }}
+                  className="mb-12"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="bg-indigo-600 text-white text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center">
+                      {day.replace(/[^0-9]/g, '')}
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800 ml-4">
+                      {dayPlan.title}
+                    </h4>
+                  </div>
+
                   <div className="space-y-6">
                     {(dayPlan.plan || []).map((activity, index) => {
                       const activityMapLink = getActivityMapLink(activity);
                       return (
-                        <div
+                        <motion.div
                           key={index}
-                          className="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.1 * index }}
+                          className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
                         >
-                          <div className="md:w-1/3">
-                            <img
-                              src={activity.imageUrl || "/default-activity.jpg"}
-                              alt={activity.activityName}
-                              loading="lazy" // Lazy load image
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = "/default-activity.jpg";
-                              }}
-                              className="w-full h-48 object-cover rounded-lg"
-                            />
-                          </div>
-                          <div className="md:w-2/3 md:pl-8 mt-4 md:mt-0">
-                            <h5 className="text-2xl font-semibold mb-2">
-                              {activity.activityName}
-                            </h5>
-                            <p className="text-gray-700 mb-2">
-                              {activity.description}
-                            </p>
-                            <div className="flex flex-wrap gap-4 text-gray-600 mb-4">
-                              <span>
-                                Time: {activity.recommendedTimeAllocation}
-                              </span>
-                              <span>Cost: {activity.cost}</span>
-                              <span>Duration: {activity.duration}</span>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="relative">
+                              <img
+                                src={activity.imageUrl || "/default-activity.jpg"}
+                                alt={activity.activityName}
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "/default-activity.jpg";
+                                }}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-tr from-black/30 to-transparent md:hidden" />
                             </div>
-                            <a
-                              href={activityMapLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
-                            >
-                              <FaMap className="mr-2" /> View on Map
-                            </a>
+
+                            <div className="p-6 md:col-span-2">
+                              <h5 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">
+                                {activity.activityName}
+                              </h5>
+                              <p className="text-gray-600 mb-4 line-clamp-3">
+                                {activity.description}
+                              </p>
+
+                              <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div className="bg-gray-50 p-3 rounded-lg">
+                                  <p className="text-xs text-gray-500 mb-1">Time</p>
+                                  <p className="font-medium text-gray-900">
+                                    {activity.recommendedTimeAllocation}
+                                  </p>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-lg">
+                                  <p className="text-xs text-gray-500 mb-1">Cost</p>
+                                  <p className="font-medium text-gray-900">
+                                    {activity.cost}
+                                  </p>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-lg">
+                                  <p className="text-xs text-gray-500 mb-1">Duration</p>
+                                  <p className="font-medium text-gray-900">
+                                    {activity.duration}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <a
+                                href={activityMapLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors group"
+                              >
+                                <FaMap className="mr-2 group-hover:scale-110 transition-transform" />
+                                <span className="font-medium">View on Map</span>
+                              </a>
+                            </div>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
-                </div>
+                </motion.div>
               ))
             ) : (
-              <p className="text-gray-600 text-lg">No itinerary available.</p>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center bg-white rounded-2xl p-8 shadow-md"
+              >
+                <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaMapMarkerAlt className="text-indigo-500 text-2xl" />
+                </div>
+                <p className="text-gray-600 text-lg">
+                  No itinerary available yet.
+                </p>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* Additional Sections */}
           {tripDetails.transportationOptions?.length > 0 &&
@@ -650,18 +790,38 @@ const ViewTrip = () => {
   />
 </div>
 
-          <div className="mt-12 text-center">
-            <button
-              onClick={() => navigate("/")}
-              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
-            >
-              Go Back
-            </button>
-          </div>
-        </div>
+          {/* Navigation Buttons */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-16 text-center"
+          >
+            <div className="inline-flex gap-4">
+              <button
+                onClick={() => navigate("/my-trips")}
+                className="px-6 py-3 bg-white text-gray-700 rounded-xl font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all flex items-center shadow-md"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                Back to Trips
+              </button>
+              <button
+                onClick={() => navigate("/create-trip")}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all flex items-center shadow-md"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Plan Another Trip
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      <footer className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-12 mt-16 shadow-lg">
+      <footer className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12 mt-16 shadow-lg relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>

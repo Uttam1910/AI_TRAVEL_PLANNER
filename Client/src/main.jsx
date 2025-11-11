@@ -4,8 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import { Toaster } from "@/components/ui/sonner"
 import { GoogleOAuthProvider } from '@react-oauth/google';
-
-
+import "./firebaseConfig"; // Import Firebase configuration first
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(

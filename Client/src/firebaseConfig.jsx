@@ -17,13 +17,24 @@ const {
   getDocs,
 } = firestore;
 
-// ✅ Log environment variables to confirm they are loading correctly
-console.log("🔧 Firebase ENV Vars:", {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-});
+// ✅ Check for required environment variables
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID'
+];
+
+const missingEnvVars = requiredEnvVars.filter(
+  varName => !import.meta.env[varName]
+);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required Firebase environment variables:', missingEnvVars);
+  throw new Error(`Missing required Firebase environment variables: ${missingEnvVars.join(', ')}`);
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -32,21 +43,36 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  ...(import.meta.env.VITE_FIREBASE_MEASUREMENT_ID && {
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  })
 };
 
-// ✅ Defensive init: prevent re-initializing Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-console.log("✅ Firebase App initialized:", app.name);
-
-// ✅ Auth and Firestore instances
-const auth = getAuth(app);
+// ✅ Initialize Firebase
+let app;
+let auth;
 let db;
+
 try {
+  // Check if Firebase is already initialized
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    console.log("✅ Firebase App initialized successfully");
+  } else {
+    app = getApp();
+    console.log("✅ Using existing Firebase App");
+  }
+
+  // Initialize Authentication
+  auth = getAuth(app);
+  console.log("✅ Firebase Auth initialized successfully");
+
+  // Initialize Firestore
   db = getFirestore(app);
-  console.log("✅ Firestore initialized");
+  console.log("✅ Firestore initialized successfully");
 } catch (error) {
-  console.error("❌ Failed to initialize Firestore:", error);
+  console.error("❌ Firebase initialization error:", error);
+  throw error;
 }
 
 export { auth, db };

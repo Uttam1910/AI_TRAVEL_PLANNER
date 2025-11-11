@@ -174,10 +174,35 @@ app.post("/plans", async (req, res) => {
       res.json(responseData);
     } catch (jsonError) {
       console.error("JSON Parsing Error:", jsonError);
-      res.status(500).json({
-        error: "AI Response Formatting Error",
+      // Provide a graceful fallback so the client can still receive a usable trip object
+      const fallback = {
+        tripId,
+        tripDetails: {
+          location: location || "",
+          startDate: date || "",
+          tripType: Array.isArray(tripType) ? tripType : (tripType ? [tripType] : []),
+          duration: Number(duration) || 0,
+          budget: budget || "",
+          travelCompanion: travelCompanion || "",
+          interests: Array.isArray(interests) ? interests : (interests ? [interests] : []),
+          activities: Array.isArray(activities) ? activities : (activities ? [activities] : []),
+          dietaryPreferences: dietaryPreferences || "None",
+          transportation: transportation || "Mixed",
+          accommodationType: accommodationType || "Hotel",
+          specialRequirements: specialRequirements || "",
+        },
+        hotelOptions: [],
+        itinerary: [],
+        transportationOptions: [],
+        diningSuggestions: [],
+        budgetEstimate: {},
+        additionalTips: [],
+        // include rawResponse for debugging and to show the AI output to the user if needed
         rawResponse: responseText,
-      });
+      };
+
+      console.warn("Returning fallback plan due to parse error, sending fallback object to client.");
+      res.json(fallback);
     }
   } catch (error) {
     console.error("Server Error:", error);
